@@ -14,6 +14,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Canvas Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Firebase SDK Compat v9/v10 (Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -137,8 +142,14 @@
                     </button>
                 </div>
 
-                <!-- Admin Header Actions (Live Display, Data Export/Import/Reset, Logout) -->
+                <!-- Admin Header Actions (Status Badge, Live Display, Data Export/Import/Reset, Logout) -->
                 <div id="adminHeaderActions" class="hidden flex items-center gap-2">
+                    <!-- Status Badge Firebase Realtime DB (VISIBLE ONLY FOR ADMIN) -->
+                    <div id="firebaseStatusBadge" class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-rajdhani font-bold border bg-tekken-card border-tekken-cardBorder text-gray-400">
+                        <span id="firebaseStatusLed" class="led-indicator led-orange"></span>
+                        <span id="firebaseStatusText" class="text-amber-400 font-bold">Cloud: Połączono (Online)</span>
+                    </div>
+
                     <button onclick="openLiveWindow()" class="px-3 py-1.5 skew-tag bg-tekken-gold hover:bg-yellow-400 text-black font-rajdhani font-bold text-xs flex items-center gap-1.5 shadow-neon-gold transition">
                         <span class="unskew flex items-center gap-1.5">
                             <i data-lucide="external-link" class="w-4 h-4"></i>
@@ -197,7 +208,7 @@
     <!-- Toast Notifications -->
     <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
-    <!-- MAIN ORGANIZER VIEW -->
+    <!-- MAIN ORGANIZER AREA -->
     <main id="mainOrganizerArea" class="hidden flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
 
         <!-- TAB 1: SETUP & PLAYERS APPROVAL -->
@@ -387,7 +398,7 @@
 
     </main>
 
-    <!-- ADMIN LOGIN MODAL (TRIGGERED FROM TOP HEADER BUTTON OR DIRECT) -->
+    <!-- ADMIN LOGIN MODAL -->
     <div id="adminAuthModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-tekken-card border border-tekken-red rounded-xl p-6 max-w-md w-full shadow-neon-red space-y-4">
             <div class="text-center">
@@ -503,7 +514,6 @@
                     </h3>
 
                     <div id="playerMatchesList" class="space-y-3">
-                        <!-- Dynamic list of matches for logged player -->
                     </div>
                 </div>
 
@@ -514,7 +524,7 @@
                 </div>
             </div>
 
-            <!-- ANONYMOUS SURVEY CARD (ALWAYS ACCESSIBLE TO LOGGED PLAYERS IN DASHBOARD) -->
+            <!-- ANONYMOUS SURVEY CARD (ACCESSIBLE TO LOGGED PLAYERS IN DASHBOARD) -->
             <div id="surveyContainer" class="bg-tekken-card border border-tekken-cyan/50 rounded-xl p-6 shadow-neon-cyan space-y-4">
                 <div class="flex items-center gap-3 border-b border-tekken-cardBorder pb-3">
                     <i data-lucide="message-square-heart" class="w-6 h-6 text-tekken-cyan"></i>
@@ -680,7 +690,7 @@
                 <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mx-auto animate-bounce"></i>
                 <h3 class="font-teko text-3xl text-white uppercase tracking-wider">Potwierdzenie Resetu Turnieju</h3>
                 <p class="text-xs text-gray-300 font-rajdhani">
-                    Czy na pewno chcesz zresetować cały turniej? <span class="text-red-400 font-bold block mt-1">Wszystkie utworzone konta graczy, mecze i anonimowe ankiety zostaną bezpowrotnie usunięte!</span>
+                    Czy na pewno chcesz zresetować cały turniej? <span class="text-red-400 font-bold block mt-1">Wszystkie utworzone konta graczy, mecze i anonimowe ankiety zostaną bezpowrotnie usunięte z bazy danych!</span>
                 </p>
             </div>
             <div class="flex gap-3 pt-2">
@@ -696,6 +706,79 @@
 
     <!-- Application JavaScript Logic -->
     <script>
+        // =========================================================================
+        // FIREBASE REALTIME DATABASE CONFIGURATION (EMBEDDED USER KEYS)
+        // =========================================================================
+        const firebaseConfig = {
+          apiKey: "AIzaSyAAgTHO9V-5X0-ay5IL-RXZ0_YhQy1wl1g",
+          authDomain: "tekkentournament.firebaseapp.com",
+          databaseURL: "https://tekkentournament-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "tekkentournament",
+          storageBucket: "tekkentournament.firebasestorage.app",
+          messagingSenderId: "33002728284",
+          appId: "1:33002728284:web:6166b6c0c30e9f249d6f99",
+          measurementId: "G-18VXJDJ93H"
+        };
+
+        let firebaseInitialized = false;
+        let fbDbRef = null;
+
+        function updateFirebaseStatusUI(status) {
+            const badge = document.getElementById('firebaseStatusBadge');
+            const led = document.getElementById('firebaseStatusLed');
+            const text = document.getElementById('firebaseStatusText');
+            if (!badge || !led || !text) return;
+
+            if (status === 'online') {
+                led.className = 'led-indicator led-green';
+                text.textContent = 'Cloud: Połączono (Online)';
+                text.className = 'text-emerald-400 font-bold';
+            } else if (status === 'error') {
+                led.className = 'led-indicator led-red';
+                text.textContent = 'Cloud: Błąd Połączenia';
+                text.className = 'text-rose-400 font-bold';
+            } else {
+                led.className = 'led-indicator led-orange';
+                text.textContent = 'Cloud: Tryb Lokalny';
+                text.className = 'text-amber-400 font-bold';
+            }
+        }
+
+        function initFirebaseIfConfigured() {
+            if (typeof firebase !== 'undefined' && firebaseConfig && firebaseConfig.databaseURL && !firebaseConfig.databaseURL.includes('TUTAJ_WKLEJ')) {
+                try {
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    fbDbRef = firebase.database().ref('tournament');
+                    firebaseInitialized = true;
+                    updateFirebaseStatusUI('online');
+
+                    // Real-time synchronization listener for cloud database
+                    fbDbRef.on('value', (snapshot) => {
+                        const cloudData = snapshot.val();
+                        if (cloudData) {
+                            tournament = cloudData;
+                            if (!tournament.groupCapacity) tournament.groupCapacity = 4;
+                            if (!tournament.surveys) tournament.surveys = [];
+                            if (!tournament.players) tournament.players = [];
+                            localStorage.setItem('tekken7_tournament', JSON.stringify(tournament));
+                            renderApp();
+                            bc.postMessage({ type: 'UPDATE_TOURNAMENT', data: tournament });
+                        }
+                    }, (err) => {
+                        console.error("Firebase sync error:", err);
+                        updateFirebaseStatusUI('error');
+                    });
+                } catch (e) {
+                    console.error("Firebase init failed:", e);
+                    updateFirebaseStatusUI('error');
+                }
+            } else {
+                updateFirebaseStatusUI('offline');
+            }
+        }
+
         // Toast Notifications
         function showToast(msg, type = 'info') {
             const container = document.getElementById('toastContainer');
@@ -1414,6 +1497,9 @@
                 loadFromLocalStorage();
             }
 
+            // Cloud sync initialization
+            initFirebaseIfConfigured();
+
             renderApp();
             setAppRole('player');
 
@@ -1428,6 +1514,9 @@
         function saveAndSync() {
             localStorage.setItem('tekken7_tournament', JSON.stringify(tournament));
             saveToDB();
+            if (firebaseInitialized && fbDbRef) {
+                fbDbRef.set(tournament).catch(err => console.error("Firebase write error:", err));
+            }
             bc.postMessage({ type: 'UPDATE_TOURNAMENT', data: tournament });
         }
 
@@ -1438,6 +1527,7 @@
                     tournament = JSON.parse(saved);
                     if (!tournament.groupCapacity) tournament.groupCapacity = 4;
                     if (!tournament.surveys) tournament.surveys = [];
+                    if (!tournament.players) tournament.players = [];
                 } catch(e) {}
             }
         }
@@ -2644,7 +2734,7 @@
             `;
         }
 
-        // CSV EXPORT (EXCEL COMPATIBLE WITH BOM)
+        // CSV EXPORT (EXCEL COMPATIBLE WITH BOM UTF-8)
         function exportToCSV() {
             if (!tournament.players || tournament.players.length === 0) {
                 showToast("Brak danych turnieju do eksportu", "error");
@@ -2760,6 +2850,11 @@
             };
             loggedPlayer = null;
             isAdminLoggedIn = false;
+
+            if (firebaseInitialized && fbDbRef) {
+                fbDbRef.set(tournament).catch(err => console.error("Firebase reset error:", err));
+            }
+
             saveAndSync();
             closeResetModal();
             renderApp();
