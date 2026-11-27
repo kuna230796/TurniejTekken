@@ -4,810 +4,627 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XIII Turniej w Tekken 7 - Tournament Manager Pro</title>
-    <!-- Tailwind CSS -->
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Canvas Confetti Library -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-    <!-- Firebase SDK Compat v9/v10 (Realtime Database) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        teko: ['Teko', 'sans-serif'],
-                        rajdhani: ['Rajdhani', 'sans-serif'],
-                        sans: ['Inter', 'sans-serif'],
-                    },
                     colors: {
                         tekken: {
-                            bg: '#08080c',
-                            card: '#12131e',
-                            cardBorder: '#23253b',
-                            red: '#ff1e4b',
-                            gold: '#ffb703',
-                            silver: '#e2e8f0',
-                            bronze: '#cd7f32',
+                            bg: '#0a0a0f',
+                            card: '#12121a',
+                            cardBorder: '#232333',
+                            red: '#e6002e',
                             cyan: '#00f0ff',
-                            darkBlue: '#16192b'
+                            gold: '#ffd700',
+                            darkBlue: '#0d1117'
                         }
                     },
+                    fontFamily: {
+                        teko: ['Teko', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif']
+                    },
                     boxShadow: {
-                        'neon-red': '0 0 15px rgba(255, 30, 75, 0.4)',
-                        'neon-gold': '0 0 15px rgba(255, 183, 3, 0.4)',
+                        'neon-red': '0 0 15px rgba(230, 0, 46, 0.4)',
                         'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.4)',
+                        'neon-gold': '0 0 15px rgba(255, 215, 0, 0.4)'
                     }
                 }
             }
         }
     </script>
+
+    <!-- Google Fonts & Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
         body {
-            background-color: #08080c;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(255, 30, 75, 0.12), transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(0, 240, 255, 0.08), transparent 50%);
-            background-attachment: fixed;
+            background-color: #050508;
             color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
         }
-
-        .skew-tag { transform: skewX(-12deg); }
-        .unskew { transform: skewX(12deg); }
-
+        .font-teko { font-family: 'Teko', sans-serif; }
+        
         .tekken-btn-red {
-            background: linear-gradient(135deg, #ff1e4b 0%, #b30024 100%);
-            border: 1px solid #ff5c7c;
-            box-shadow: 0 0 10px rgba(255, 30, 75, 0.3);
+            background: linear-gradient(135deg, #e6002e 0%, #99001f 100%);
             transition: all 0.2s ease;
         }
-        .tekken-btn-red:hover { box-shadow: 0 0 20px rgba(255, 30, 75, 0.6); filter: brightness(1.1); }
-
-        .tekken-btn-gold {
-            background: linear-gradient(135deg, #ffb703 0%, #d48800 100%);
-            border: 1px solid #ffd056;
+        .tekken-btn-red:hover {
+            box-shadow: 0 0 15px rgba(230, 0, 46, 0.6);
+            transform: translateY(-1px);
+        }
+        .tekken-btn-cyan {
+            background: linear-gradient(135deg, #00f0ff 0%, #0088cc 100%);
             color: #000;
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(255, 183, 3, 0.3);
             transition: all 0.2s ease;
         }
-        .tekken-btn-gold:hover { box-shadow: 0 0 20px rgba(255, 183, 3, 0.6); filter: brightness(1.1); }
-
+        .tekken-btn-cyan:hover {
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+            transform: translateY(-1px);
+        }
+        .tekken-btn-gold {
+            background: linear-gradient(135deg, #ffd700 0%, #ccac00 100%);
+            color: #000;
+            transition: all 0.2s ease;
+        }
+        .tekken-btn-gold:hover {
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            transform: translateY(-1px);
+        }
+        
         .led-indicator {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             display: inline-block;
-            box-shadow: 0 0 8px currentColor;
         }
-        .led-red { background-color: #ef4444; color: #ef4444; }
-        .led-orange { background-color: #f97316; color: #f97316; }
-        .led-green { background-color: #22c55e; color: #22c55e; }
-
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #0d0e15; }
-        ::-webkit-scrollbar-thumb { background: #262942; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #ff1e4b; }
+        .led-red { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        .led-orange { background-color: #f97316; box-shadow: 0 0 8px #f97316; }
+        .led-green { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans selection:bg-tekken-red selection:text-white">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Top Navigation Header -->
-    <header class="border-b border-tekken-cardBorder bg-tekken-bg/95 backdrop-blur sticky top-0 z-50">
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Header / Navigation Bar -->
+    <header class="bg-tekken-card border-b border-tekken-cardBorder sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
-            <!-- Logo & Info -->
-            <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 skew-tag bg-tekken-red flex items-center justify-center font-teko text-2xl font-bold text-white shadow-neon-red">
-                    <span class="unskew">XIII</span>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-tekken-red rounded flex items-center justify-center font-teko text-2xl font-bold text-white shadow-neon-red">
+                    XIII
                 </div>
                 <div>
-                    <h1 class="font-teko text-3xl uppercase tracking-wider leading-none text-white drop-shadow">
+                    <h1 class="font-teko text-2xl font-bold uppercase tracking-wider text-white leading-none">
                         XIII Turniej <span class="text-tekken-red">w Tekken 7</span>
                     </h1>
-                    <div class="flex flex-col sm:flex-row sm:gap-3 text-xs text-gray-400 font-rajdhani font-semibold">
-                        <span class="text-tekken-gold">by Michał „Majsik” Długaszewski</span>
-                        <span class="hidden sm:inline text-gray-600">•</span>
-                        <span class="text-tekken-cyan">Pub Salonik 28.11.2026r.</span>
-                    </div>
+                    <p class="text-[10px] text-tekken-gold font-bold uppercase tracking-wider">by Michał „Majsik” Długaszewski | Pub Salonik 28.11.2026r.</p>
                 </div>
             </div>
 
-            <!-- Role View Switcher & Actions -->
+            <!-- Role Selector & Status Bar -->
             <div class="flex items-center gap-3">
-                <div class="flex items-center bg-tekken-card p-1 rounded-lg border border-tekken-cardBorder">
-                    <button onclick="setAppRole('player')" id="btn-role-player" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red flex items-center gap-1.5">
-                        <i data-lucide="gamepad-2" class="w-4 h-4"></i> Portal Gracza
-                    </button>
-                    <button onclick="setAppRole('organizer')" id="btn-role-org" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white flex items-center gap-1.5">
-                        <i data-lucide="shield" class="w-4 h-4"></i> Panel Organizatora
-                    </button>
-                </div>
-
-                <!-- Player Header Info -->
-                <div id="playerAuthHeaderInfo" class="hidden flex items-center gap-2">
-                    <span id="loggedPlayerNickname" class="text-xs font-bold font-rajdhani text-tekken-cyan bg-tekken-darkBlue px-2.5 py-1.5 rounded border border-tekken-cardBorder">
-                        Niezalogowany
-                    </span>
-                    <button onclick="logoutPlayer()" class="p-1.5 bg-red-950 text-red-400 hover:text-white border border-red-800 rounded" title="Wyloguj">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
-                    </button>
-                </div>
-
-                <!-- Admin Header Actions (Status Badge, Live Display, Data Export/Import/Reset, Logout) -->
                 <div id="adminHeaderActions" class="hidden flex items-center gap-2">
-                    <!-- Status Badge Firebase Realtime DB (VISIBLE ONLY FOR ADMIN) -->
-                    <div id="firebaseStatusBadge" class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-rajdhani font-bold border bg-tekken-card border-tekken-cardBorder text-gray-400">
-                        <span id="firebaseStatusLed" class="led-indicator led-orange"></span>
-                        <span id="firebaseStatusText" class="text-amber-400 font-bold">Cloud: Połączono (Online)</span>
-                    </div>
-
-                    <button onclick="openLiveWindow()" class="px-3 py-1.5 skew-tag bg-tekken-gold hover:bg-yellow-400 text-black font-rajdhani font-bold text-xs flex items-center gap-1.5 shadow-neon-gold transition">
-                        <span class="unskew flex items-center gap-1.5">
-                            <i data-lucide="external-link" class="w-4 h-4"></i>
-                            <span>Ekran na Żywo (2. Monitor)</span>
-                        </span>
+                    <span id="cloudStatusBadge" class="text-[10px] font-bold px-2 py-1 rounded bg-slate-800 text-gray-300 border border-slate-700 flex items-center gap-1">
+                        <i data-lucide="cloud-off" class="w-3 h-3 text-orange-400"></i> Local DB
+                    </span>
+                    <button onclick="openLiveWindow()" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase bg-tekken-gold text-black hover:bg-yellow-400 transition flex items-center gap-1 shadow-neon-gold">
+                        <i data-lucide="tv" class="w-3.5 h-3.5"></i> 2. Monitor Live
                     </button>
-
-                    <!-- Data Actions Dropdown Menu -->
+                    
+                    <!-- Action Menu Dropdown -->
                     <div class="relative">
-                        <button onclick="toggleActionMenu(event)" class="p-2 bg-tekken-card border border-tekken-cardBorder rounded text-gray-300 hover:text-white focus:outline-none focus:border-tekken-red" title="Opcje Danych i Zapisów">
-                            <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                        <button onclick="toggleActionMenu(event)" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase bg-tekken-cardBorder text-white hover:bg-gray-700 transition flex items-center gap-1 border border-gray-600">
+                            <i data-lucide="more-vertical" class="w-3.5 h-3.5"></i> Opcje
                         </button>
-                        <div id="actionDropdownMenu" class="absolute right-0 mt-2 w-64 bg-tekken-card border border-tekken-cardBorder rounded-lg shadow-2xl py-1 hidden z-50">
-                            <button onclick="exportToCSV()" class="w-full text-left px-4 py-2.5 text-sm text-tekken-cyan hover:bg-tekken-cardBorder flex items-center gap-2 font-semibold transition">
-                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Eksportuj do CSV (Excel)
+                        <div id="actionDropdownMenu" class="hidden absolute right-0 mt-2 w-56 bg-tekken-card border border-tekken-cardBorder rounded-lg shadow-2xl py-2 z-50">
+                            <button onclick="exportToCSV()" class="w-full text-left px-4 py-2 text-xs font-bold text-gray-300 hover:bg-tekken-red hover:text-white flex items-center gap-2">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i> Eksportuj Raport CSV (Excel)
                             </button>
-                            <hr class="border-tekken-cardBorder my-1">
-                            <button onclick="exportData()" class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-tekken-cardBorder flex items-center gap-2 transition">
-                                <i data-lucide="download" class="w-4 h-4"></i> Eksportuj JSON (Kopia)
+                            <button onclick="exportData()" class="w-full text-left px-4 py-2 text-xs font-bold text-gray-300 hover:bg-tekken-red hover:text-white flex items-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i> Eksportuj Backup (JSON)
                             </button>
-                            <label class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-tekken-cardBorder flex items-center gap-2 cursor-pointer transition">
-                                <i data-lucide="upload" class="w-4 h-4"></i> Importuj JSON
-                                <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importData(event)">
+                            <label class="w-full text-left px-4 py-2 text-xs font-bold text-gray-300 hover:bg-tekken-red hover:text-white flex items-center gap-2 cursor-pointer">
+                                <i data-lucide="upload" class="w-4 h-4 text-yellow-400"></i> Importuj Backup (JSON)
+                                <input type="file" id="jsonFileInput" onchange="importData(event)" accept=".json" class="hidden">
                             </label>
-                            <hr class="border-tekken-cardBorder my-1">
-                            <button onclick="openResetModal()" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-950 flex items-center gap-2 transition">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i> Reset Turnieju (Usuń Wszystko)
+                            <div class="border-t border-tekken-cardBorder my-1"></div>
+                            <button onclick="resetTournament()" class="w-full text-left px-4 py-2 text-xs font-bold text-rose-400 hover:bg-rose-950 hover:text-rose-200 flex items-center gap-2">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Zresetuj Turniej (Wyczyszczenie)
+                            </button>
+                            <div class="border-t border-tekken-cardBorder my-1"></div>
+                            <button onclick="logoutAdmin()" class="w-full text-left px-4 py-2 text-xs font-bold text-gray-400 hover:text-white flex items-center gap-2">
+                                <i data-lucide="log-out" class="w-4 h-4"></i> Wyloguj Admina
                             </button>
                         </div>
                     </div>
+                </div>
 
-                    <button onclick="logoutAdmin()" class="p-1.5 bg-red-950 text-red-400 hover:text-white border border-red-800 rounded" title="Wyloguj Admina">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                <div id="playerAuthHeaderInfo" class="hidden flex items-center gap-2 text-xs font-bold">
+                    <span class="text-gray-400">Gracz:</span>
+                    <span id="loggedPlayerNickname" class="text-tekken-cyan"></span>
+                    <button onclick="logoutPlayer()" class="text-gray-400 hover:text-rose-400 ml-1 p-1">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+
+                <!-- Mode Switcher Tabs -->
+                <div class="flex bg-tekken-bg border border-tekken-cardBorder rounded p-0.5">
+                    <button id="btn-role-player" onclick="setAppRole('player')" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red flex items-center gap-1.5">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i> Portal Gracza
+                    </button>
+                    <button id="btn-role-org" onclick="setAppRole('organizer')" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white flex items-center gap-1.5">
+                        <i data-lucide="shield" class="w-3.5 h-3.5"></i> Panel Organizatora
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Tab Buttons (Organizer View Only) -->
-        <nav id="navTabsOrg" class="hidden max-w-7xl mx-auto px-4 pb-2 flex items-center space-x-2 border-t border-tekken-cardBorder/40 pt-2">
-            <button onclick="switchTab('setup')" id="tab-setup" class="px-3 py-1.5 rounded text-sm font-rajdhani font-semibold flex items-center gap-2 transition-all text-white bg-tekken-red">
-                <i data-lucide="users" class="w-4 h-4"></i>
-                <span>Rejestracja i Konfiguracja</span>
-            </button>
-            <button onclick="switchTab('groups')" id="tab-groups" class="px-3 py-1.5 rounded text-sm font-rajdhani font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-white">
-                <i data-lucide="grid" class="w-4 h-4"></i>
-                <span>Faza Grupowa</span>
-            </button>
-            <button onclick="switchTab('knockout')" id="tab-knockout" class="px-3 py-1.5 rounded text-sm font-rajdhani font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-white">
-                <i data-lucide="trophy" class="w-4 h-4"></i>
-                <span>Faza Pucharowa</span>
-            </button>
-        </nav>
+        <!-- Organizer Sub-Navigation Tabs -->
+        <div id="navTabsOrg" class="hidden bg-tekken-bg border-t border-tekken-cardBorder">
+            <div class="max-w-7xl mx-auto px-4 flex space-x-2">
+                <button id="tab-setup" onclick="switchTab('setup')" class="px-4 py-2 text-xs font-rajdhani font-bold uppercase text-white bg-tekken-red transition flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4"></i> 1. Uczestnicy & Konfiguracja
+                </button>
+                <button id="tab-groups" onclick="switchTab('groups')" class="px-4 py-2 text-xs font-rajdhani font-bold uppercase text-gray-400 hover:text-white transition flex items-center gap-2">
+                    <i data-lucide="grid" class="w-4 h-4"></i> 2. Faza Grupowa
+                </button>
+                <button id="tab-knockout" onclick="switchTab('knockout')" class="px-4 py-2 text-xs font-rajdhani font-bold uppercase text-gray-400 hover:text-white transition flex items-center gap-2">
+                    <i data-lucide="trophy" class="w-4 h-4"></i> 3. Faza Pucharowa
+                </button>
+            </div>
+        </div>
     </header>
 
-    <!-- Toast Notifications -->
-    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+    <!-- Main Content Body -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4">
 
-    <!-- MAIN ORGANIZER AREA -->
-    <main id="mainOrganizerArea" class="hidden flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+        <!-- ========================================== -->
+        <!-- SECTION 1: PLAYER PORTAL AREA              -->
+        <!-- ========================================== -->
+        <div id="mainPlayerArea" class="space-y-6">
+            
+            <!-- Auth Form Card for Player (When Logged Out) -->
+            <div id="playerAuthSection" class="max-w-md mx-auto bg-tekken-card border border-tekken-cardBorder rounded-xl p-6 shadow-2xl">
+                <div class="flex border-b border-tekken-cardBorder mb-6">
+                    <button id="btn-auth-login" onclick="setAuthTab('login')" class="w-1/2 py-2 font-rajdhani font-bold text-sm uppercase text-tekken-red border-b-2 border-tekken-red">
+                        Zaloguj się
+                    </button>
+                    <button id="btn-auth-reg" onclick="setAuthTab('register')" class="w-1/2 py-2 font-rajdhani font-bold text-sm uppercase text-gray-400 hover:text-white">
+                        Zarejestruj się
+                    </button>
+                </div>
 
-        <!-- TAB 1: SETUP & PLAYERS APPROVAL -->
-        <section id="sec-setup" class="space-y-6">
-            <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-6 shadow-xl">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <!-- Player Login Form -->
+                <form id="formLogin" onsubmit="handlePlayerLogin(event)" class="space-y-4">
                     <div>
-                        <h2 class="font-teko text-3xl text-white tracking-wide uppercase">Rejestracja i Konfiguracja Turnieju</h2>
-                        <p class="text-sm text-gray-400">Zatwierdzaj zgłoszenia graczy, modyfikuj mecze, wybieraj wielkość grup i zasady.</p>
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Login Gracza</label>
+                        <input type="text" id="loginUsername" required autocomplete="username" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-red">
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                        <div class="flex items-center gap-2 bg-tekken-bg border border-tekken-cardBorder p-1.5 rounded-lg">
-                            <label class="text-xs font-rajdhani font-bold text-gray-400 uppercase">Max w grupie:</label>
-                            <select id="groupCapacitySelect" onchange="setGroupCapacity(this.value)" class="bg-tekken-card font-bold text-tekken-gold border border-tekken-cardBorder rounded px-2 py-1 text-sm focus:outline-none">
-                                <option value="4" selected>4 graczy</option>
-                                <option value="5">5 graczy</option>
-                                <option value="6">6 graczy</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2 bg-tekken-bg border border-tekken-cardBorder p-1.5 rounded-lg">
-                            <input type="number" id="quickCount" value="8" min="2" max="64" class="w-14 bg-transparent text-center font-bold text-white border-b border-gray-600 focus:outline-none focus:border-tekken-cyan">
-                            <button onclick="generateQuickPlayers()" class="px-3 py-1 bg-tekken-darkBlue border border-tekken-cyan text-tekken-cyan hover:bg-tekken-cyan hover:text-black font-rajdhani font-bold text-xs uppercase rounded transition">
-                                Szybka Lista
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Settings Controls -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div class="bg-tekken-bg border border-tekken-cardBorder p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="sliders" class="w-5 h-5 text-tekken-gold"></i>
-                            <div>
-                                <span class="font-rajdhani font-bold text-white uppercase text-sm block">Tryb Przydziału do Grup</span>
-                                <span class="text-xs text-gray-400">Automatyczny koszykowy lub ręczny wybór A, B, C...</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 bg-tekken-card p-1 rounded-lg border border-tekken-cardBorder">
-                            <button onclick="setAssignmentMode('auto')" id="btn-mode-auto" class="px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red">
-                                Automatyczny
-                            </button>
-                            <button onclick="setAssignmentMode('manual')" id="btn-mode-manual" class="px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white">
-                                Ręczny
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bg-tekken-bg border border-tekken-cardBorder p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="scale" class="w-5 h-5 text-tekken-cyan"></i>
-                            <div>
-                                <span class="font-rajdhani font-bold text-white uppercase text-sm block">Kryterium Remisu</span>
-                                <span class="text-xs text-gray-400">Wygrana = 3 PKT | Porażka = 0 PKT</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 bg-tekken-card p-1 rounded-lg border border-tekken-cardBorder">
-                            <button onclick="setTiebreaker('diff')" id="btn-tie-diff" class="px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red">
-                                Bilans (+/-)
-                            </button>
-                            <button onclick="setTiebreaker('h2h')" id="btn-tie-h2h" class="px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white">
-                                Bezpośrednie
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SURVEY ANALYTICS DASHBOARD IN ORGANIZER PANEL -->
-                <div class="bg-tekken-darkBlue/80 border border-tekken-cyan/40 rounded-xl p-4 mb-6 space-y-3">
-                    <h3 class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider flex items-center gap-2">
-                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Wyniki Anonimowych Ankiet Uczestników
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                        <div class="bg-tekken-card p-3 rounded-lg border border-tekken-cardBorder">
-                            <span class="text-xs text-gray-400 uppercase font-bold block">Średnia Ocena Organizacji</span>
-                            <span id="avgOrgRatingText" class="font-teko text-3xl text-tekken-gold font-bold">0.0 / 10</span>
-                        </div>
-                        <div class="bg-tekken-card p-3 rounded-lg border border-tekken-cardBorder">
-                            <span class="text-xs text-gray-400 uppercase font-bold block">Średnia Ocena Aplikacji</span>
-                            <span id="avgAppRatingText" class="font-teko text-3xl text-tekken-cyan font-bold">0.0 / 10</span>
-                        </div>
-                        <div class="bg-tekken-card p-3 rounded-lg border border-tekken-cardBorder">
-                            <span class="text-xs text-gray-400 uppercase font-bold block">Łącznie Oddanych Głosów</span>
-                            <span id="totalSurveyVotesText" class="font-teko text-3xl text-white font-bold">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PENDING PLAYERS APPROVAL SECTION -->
-                <div class="bg-tekken-darkBlue/60 border border-tekken-gold/30 rounded-xl p-4 mb-6">
-                    <h3 class="font-teko text-2xl text-tekken-gold uppercase tracking-wider flex items-center gap-2 mb-2">
-                        <i data-lucide="user-check" class="w-5 h-5"></i> Oczekujący Gracze na Zatwierdzenie (<span id="pendingCount">0</span>)
-                    </h3>
-                    <p class="text-xs text-gray-400 mb-4">Uczestnicy zarejestrowani przez Portal Gracza. Zatwierdź ich i opcjonalnie przypisz rangę lub grupę.</p>
-
-                    <div id="pendingPlayersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        <div class="col-span-full text-center py-4 text-gray-500 font-rajdhani">Brak nowych zgłoszeń graczy.</div>
-                    </div>
-                </div>
-
-                <!-- MANUAL REGISTRATION BY ORGANIZER -->
-                <div class="bg-tekken-bg border border-tekken-cardBorder p-4 rounded-xl mb-6">
-                    <form id="manualAddForm" onsubmit="addPlayerManually(event)" class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="playerNameInput" placeholder="Nazwa gracza / Nick (np. Arslan_Ash)" required autocomplete="off" class="flex-grow bg-tekken-card border border-tekken-cardBorder rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-tekken-red">
-                        
-                        <div class="flex items-center gap-2 bg-tekken-card border border-tekken-cardBorder rounded-lg px-3 py-1">
-                            <label for="playerRankInput" class="text-xs font-rajdhani font-bold text-gray-400 uppercase whitespace-nowrap">Ranking (0=DEBIUT):</label>
-                            <input type="number" id="playerRankInput" min="0" max="999" value="0" class="w-16 bg-transparent text-center font-bold text-tekken-gold border-b border-gray-600 focus:outline-none focus:border-tekken-gold">
-                        </div>
-
-                        <div id="manualGroupSelectContainer" class="hidden flex items-center gap-2">
-                            <label class="text-xs font-rajdhani font-bold text-gray-400 uppercase">Grupa:</label>
-                            <select id="playerGroupSelect" class="bg-tekken-card border border-tekken-cardBorder rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-tekken-red font-rajdhani font-bold">
-                            </select>
-                        </div>
-
-                        <button type="submit" class="tekken-btn-red px-6 py-2.5 rounded-lg font-rajdhani font-bold uppercase tracking-wider text-white flex items-center justify-center gap-2">
-                            <i data-lucide="user-plus" class="w-4 h-4"></i> Dodaj Gracza
-                        </button>
-                    </form>
-                </div>
-
-                <!-- APPROVED PLAYERS LIST WITH EDIT OPTIONS -->
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center text-sm font-rajdhani font-semibold text-gray-400">
-                        <span>ZATWIERDZENI GRACZE (<span id="playersCount" class="text-tekken-cyan font-bold">0</span>)</span>
-                        <span class="text-xs">Liczba grup: <span id="calcGroupsCount" class="text-tekken-gold font-bold">0</span></span>
-                    </div>
-
-                    <div id="playersList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto p-1">
-                    </div>
-                </div>
-
-                <!-- Confirm & Start Groups -->
-                <div class="mt-8 pt-6 border-t border-tekken-cardBorder flex justify-end">
-                    <button onclick="confirmAndGenerateGroups()" class="tekken-btn-gold px-8 py-3 rounded-lg font-teko text-2xl uppercase tracking-wider flex items-center gap-2 shadow-neon-gold">
-                        <i data-lucide="play" class="w-6 h-6 fill-black"></i> Zatwierdź Grupy i Rozpocznij Fazę Grupową
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 2: GROUPS STAGE -->
-        <section id="sec-groups" class="hidden space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-tekken-card p-4 rounded-xl border border-tekken-cardBorder">
-                <div>
-                    <h2 class="font-teko text-3xl text-white tracking-wide uppercase">Faza Grupowa (FT4)</h2>
-                    <p class="text-xs text-gray-400">Mecze są rozgrywane kolejka po kolejce we wszystkich grupach. Top 2 z każdej grupy awansuje do Fazy Pucharowej.</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="simulateGroupScores()" class="px-4 py-2 bg-tekken-darkBlue border border-tekken-cyan text-tekken-cyan hover:bg-tekken-cyan hover:text-black font-rajdhani text-sm font-bold uppercase rounded transition">
-                        ⚡ Symuluj Wyniki Grup
-                    </button>
-                    <button onclick="advanceToKnockout()" class="tekken-btn-red px-6 py-2.5 rounded-lg font-teko text-xl uppercase tracking-wider flex items-center gap-2 shadow-neon-red">
-                        <i data-lucide="shield-check" class="w-5 h-5"></i> Zatwierdź i Generuj Drabinkę Pucharową
-                    </button>
-                </div>
-            </div>
-
-            <div id="groupsContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            </div>
-        </section>
-
-        <!-- TAB 3: KNOCKOUT STAGE -->
-        <section id="sec-knockout" class="hidden space-y-6">
-            <div class="bg-tekken-card p-4 rounded-xl border border-tekken-cardBorder flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 class="font-teko text-3xl text-white tracking-wide uppercase">Faza Pucharowa (Knockout Bracket)</h2>
-                    <p class="text-xs text-gray-400">
-                        Mecze do 1/4 finału: <span class="text-tekken-cyan font-bold">1 mecz FT4</span> | 
-                        Półfinał: <span class="text-tekken-gold font-bold">Seria BO3</span> | 
-                        Mecz o 3. msc & Finał: <span class="text-tekken-red font-bold">Seria BO5</span>. Mecz o 3. miejsce jest przed Finałem.
-                    </p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="renderKnockout()" class="px-4 py-2 bg-tekken-darkBlue border border-tekken-cardBorder text-gray-300 hover:text-white rounded font-rajdhani text-sm font-semibold flex items-center gap-1.5">
-                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Odśwież Drabinkę
-                    </button>
-                </div>
-            </div>
-
-            <div id="bracketTreeContainer" class="relative overflow-x-auto pb-6">
-                <div id="bracketTree" class="relative z-10 min-w-[800px] flex gap-8 items-stretch py-4">
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- ADMIN LOGIN MODAL -->
-    <div id="adminAuthModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-tekken-card border border-tekken-red rounded-xl p-6 max-w-md w-full shadow-neon-red space-y-4">
-            <div class="text-center">
-                <h3 class="font-teko text-3xl text-white uppercase tracking-wider">Logowanie Organizatora</h3>
-                <p class="text-xs text-gray-400">Zaloguj się kontem admina, aby uzyskać pełny dostęp do zarządzania.</p>
-            </div>
-            <form onsubmit="handleAdminLogin(event)" class="space-y-4 font-rajdhani" autocomplete="off">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Login Admina:</label>
-                    <input type="text" id="adminLoginUserModal" name="admin_username_nocache" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-red">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Hasło:</label>
-                    <input type="password" id="adminLoginPassModal" name="admin_password_nocache" required autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-red">
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeAdminAuthModal()" class="w-1/2 py-2.5 rounded bg-tekken-cardBorder hover:bg-gray-700 text-white font-bold uppercase text-sm">
-                        Anuluj
-                    </button>
-                    <button type="submit" class="w-1/2 py-2.5 rounded tekken-btn-red text-white font-bold uppercase text-sm">
-                        Zaloguj Admina
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MAIN PLAYER PORTAL (DEFAULT LOADED VIEW) -->
-    <main id="mainPlayerArea" class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6 space-y-6">
-
-        <!-- AUTH SECTION FOR PLAYERS -->
-        <div id="playerAuthSection" class="bg-tekken-card border border-tekken-red rounded-xl p-6 shadow-neon-red max-w-md mx-auto space-y-6">
-            <div class="text-center">
-                <h2 class="font-teko text-4xl text-white uppercase tracking-wider">Portal Gracza</h2>
-                <p class="text-xs text-gray-400">Zaloguj się kontem gracza lub zarejestruj swój udział w turnieju.</p>
-            </div>
-
-            <!-- 2 TABS IN AUTH CARD: LOGIN & REGISTER -->
-            <div class="flex border-b border-tekken-cardBorder text-center font-rajdhani font-bold text-xs uppercase">
-                <button onclick="setAuthTab('login')" id="btn-auth-login" class="w-1/2 py-2.5 text-tekken-red border-b-2 border-tekken-red font-bold">
-                    Zaloguj się
-                </button>
-                <button onclick="setAuthTab('register')" id="btn-auth-reg" class="w-1/2 py-2.5 text-gray-400 hover:text-white">
-                    Zarejestruj się
-                </button>
-            </div>
-
-            <!-- Login Form (Player) -->
-            <form id="formLogin" onsubmit="handlePlayerLogin(event)" class="space-y-4 font-rajdhani">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Login Gracza:</label>
-                    <input type="text" id="loginUsername" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-red">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Hasło:</label>
-                    <input type="password" id="loginPassword" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-red">
-                </div>
-                <button type="submit" class="w-full py-2.5 tekken-btn-red rounded font-bold uppercase tracking-wider text-white">
-                    Zaloguj do Turnieju
-                </button>
-            </form>
-
-            <!-- Register Form (Player) -->
-            <form id="formRegister" onsubmit="handlePlayerRegister(event)" class="hidden space-y-4 font-rajdhani">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Login (Do Logowania):</label>
-                    <input type="text" id="regLogin" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-cyan">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Nazwa Gracza / Nick (Wyświetlany na Turnieju):</label>
-                    <input type="text" id="regName" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-cyan">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Hasło:</label>
-                    <input type="password" id="regPassword" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-cyan">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Czy pierwszy raz bierzesz udział w turnieju?</label>
-                    <select id="regFirstTime" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-cyan font-bold">
-                        <option value="yes" selected>Tak</option>
-                        <option value="no">Nie</option>
-                    </select>
-                </div>
-                <button type="submit" class="w-full py-2.5 tekken-btn-gold rounded font-bold uppercase tracking-wider text-black">
-                    Zarejestruj Konto Gracza
-                </button>
-            </form>
-        </div>
-
-        <!-- DASHBOARD FOR LOGGED-IN PLAYER -->
-        <div id="playerDashboardSection" class="hidden space-y-6">
-            <div id="playerPendingNotice" class="hidden bg-yellow-950/80 border border-yellow-500/50 rounded-xl p-5 text-center space-y-2">
-                <i data-lucide="clock" class="w-8 h-8 text-yellow-400 mx-auto"></i>
-                <h3 class="font-teko text-2xl text-yellow-300 uppercase">Oczekujesz na Zatwierdzenie</h3>
-                <p class="text-xs text-gray-300">Twoje konto zostało utworzone. Organizator zatwierdzi Twój udział wkrótce.</p>
-            </div>
-
-            <!-- ELIMINATED / FINISHED CARD HEADER -->
-            <div id="playerEliminatedSection" class="hidden bg-tekken-card border border-tekken-gold/60 rounded-xl p-6 shadow-neon-gold text-center space-y-3">
-                <div id="playerCongratulationsHeader" class="space-y-1">
-                </div>
-                <div class="text-sm font-rajdhani text-gray-300 font-semibold border-t border-b border-tekken-cardBorder py-3">
-                    Dziękujemy za udział w turnieju, zapraszamy za rok!
-                </div>
-            </div>
-
-            <div id="playerActiveDashboard" class="space-y-6">
-                <!-- Upcoming Matches Card -->
-                <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
-                    <h3 class="font-teko text-3xl text-white uppercase tracking-wider flex items-center justify-between">
-                        <span>Twoje Nadchodzące / Rozgrywane Mecze</span>
-                        <span class="text-xs font-rajdhani text-tekken-cyan" id="playerGroupNameHeader"></span>
-                    </h3>
-
-                    <div id="playerMatchesList" class="space-y-3">
-                    </div>
-                </div>
-
-                <!-- My Group Table -->
-                <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
-                    <h3 class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider">Tabela Twojej Grupy</h3>
-                    <div id="playerGroupTableContainer"></div>
-                </div>
-            </div>
-
-            <!-- ANONYMOUS SURVEY CARD (ACCESSIBLE TO LOGGED PLAYERS IN DASHBOARD) -->
-            <div id="surveyContainer" class="bg-tekken-card border border-tekken-cyan/50 rounded-xl p-6 shadow-neon-cyan space-y-4">
-                <div class="flex items-center gap-3 border-b border-tekken-cardBorder pb-3">
-                    <i data-lucide="message-square-heart" class="w-6 h-6 text-tekken-cyan"></i>
                     <div>
-                        <h4 class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider leading-none">Anonimowa Ankieta Uczestnika</h4>
-                        <p class="text-xs text-gray-400 font-rajdhani">Podziel się swoją opinią o organizacji i aplikacji.</p>
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Hasło</label>
+                        <input type="password" id="loginPassword" required autocomplete="current-password" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-red">
                     </div>
-                </div>
-
-                <form id="surveyForm" onsubmit="submitPlayerSurvey(event)" class="space-y-4 font-rajdhani">
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-white mb-1">1. Jak oceniasz organizację turnieju? (1-10)</label>
-                        <div class="flex items-center gap-3 bg-tekken-bg p-3 rounded-lg border border-tekken-cardBorder">
-                            <input type="range" id="surveyRatingOrg" min="1" max="10" value="10" oninput="document.getElementById('valOrg').textContent = this.value" class="w-full accent-tekken-gold">
-                            <span id="valOrg" class="font-teko text-3xl text-tekken-gold font-bold w-10 text-center">10</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-white mb-1">2. Jak oceniasz działanie aplikacji? (1-10)</label>
-                        <div class="flex items-center gap-3 bg-tekken-bg p-3 rounded-lg border border-tekken-cardBorder">
-                            <input type="range" id="surveyRatingApp" min="1" max="10" value="10" oninput="document.getElementById('valApp').textContent = this.value" class="w-full accent-tekken-cyan">
-                            <span id="valApp" class="font-teko text-3xl text-tekken-cyan font-bold w-10 text-center">10</span>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="w-full py-3 tekken-btn-gold rounded-lg font-bold uppercase text-black text-sm tracking-wider shadow-neon-gold">
-                        Wyślij Anonimową Ankietę
+                    <button type="submit" class="w-full py-2.5 tekken-btn-red rounded text-xs font-rajdhani font-bold uppercase text-white shadow-neon-red">
+                        Zaloguj do Portalu Gracza
                     </button>
                 </form>
 
-                <div id="surveyThanksMsg" class="hidden text-center py-4 text-emerald-400 font-rajdhani font-bold text-sm uppercase bg-tekken-darkBlue rounded-lg border border-emerald-500/40">
-                    <i data-lucide="check-circle-2" class="w-6 h-6 mx-auto mb-1 text-emerald-400"></i>
-                    Dziękujemy za oddanie głosu w anonimowej ankiecie!
+                <!-- Player Registration Form -->
+                <form id="formRegister" onsubmit="handlePlayerRegister(event)" class="hidden space-y-4">
+                    <div id="registrationLockedNotice" class="hidden p-3 bg-red-950/60 border border-red-600 rounded text-center text-xs text-red-300 font-bold">
+                        Rejestracja na turniej została zamknięta przez organizatora.
+                    </div>
+                    <div id="registerFields" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Unikalny Login (do logowania)</label>
+                            <input type="text" id="regLogin" required class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-cyan">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Nick / Imię (wyświetlane w turnieju)</label>
+                            <input type="text" id="regName" required class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-cyan">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Hasło</label>
+                            <input type="password" id="regPassword" required class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-cyan">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Czy pierwszy raz bierzesz udział w turnieju?</label>
+                            <select id="regFirstTime" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-cyan font-bold">
+                                <option value="no">Nie (posiadam punkty / doświadczenie)</option>
+                                <option value="yes">Tak (Jestem Debiutantem)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full py-2.5 tekken-btn-cyan rounded text-xs font-rajdhani font-bold uppercase text-black shadow-neon-cyan">
+                            Zarejestruj Udział
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Player Dashboard (When Logged In) -->
+            <div id="playerDashboardSection" class="hidden space-y-6">
+                <!-- Pending Approval Alert -->
+                <div id="playerPendingNotice" class="hidden bg-amber-950/40 border border-amber-500/60 rounded-xl p-4 text-center">
+                    <i data-lucide="clock" class="w-8 h-8 text-amber-400 mx-auto mb-2"></i>
+                    <h3 class="font-teko text-2xl text-amber-300 uppercase">Twoje zgłoszenie oczekuje na zatwierdzenie</h3>
+                    <p class="text-xs text-gray-300">Organizator weryfikuje Twoje zgłoszenie. Gdy zostanie zaakceptowane, zobaczysz tu swoje mecze i przydział grupy.</p>
+                </div>
+
+                <!-- Congratulations / Eliminated & Anonymous Survey Panel -->
+                <div id="playerEliminatedSection" class="hidden bg-tekken-card border border-tekken-gold/40 rounded-xl p-6 shadow-2xl space-y-4">
+                    <div id="playerCongratulationsHeader" class="text-center space-y-2"></div>
+                    
+                    <!-- Anonymous Tournament Survey Form -->
+                    <div id="playerSurveyContainer" class="bg-tekken-bg border border-tekken-cardBorder rounded-lg p-5 space-y-4 max-w-xl mx-auto">
+                        <h4 class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider text-center">
+                            Anonimowa Ankieta Uczestnika Turnieju
+                        </h4>
+                        <p class="text-xs text-gray-400 text-center">Twoja opinia pomaga nam udoskonalać kolejne edycje turnieju. Oceny są w pełni anonimowe.</p>
+                        
+                        <form id="surveyForm" onsubmit="submitPlayerSurvey(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-1">1. Ocena organizacji turnieju (1 - 10):</label>
+                                <select id="surveyRatingOrg" class="w-full bg-tekken-card border border-tekken-cardBorder rounded px-3 py-2 text-sm text-tekken-gold font-bold">
+                                    <option value="10">10 - Doskonale</option>
+                                    <option value="9">9 - Bardzo dobrze</option>
+                                    <option value="8">8 - Dobrze</option>
+                                    <option value="7">7 - W porządku</option>
+                                    <option value="6">6 - Średnio</option>
+                                    <option value="5">5 - Przeciętnie</option>
+                                    <option value="4">4 - Słabo</option>
+                                    <option value="3">3 - Bardzo słabo</option>
+                                    <option value="2">2 - Tragicznie</option>
+                                    <option value="1">1 - Najgorzej</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-1">2. Ocena działania aplikacji turniejowej (1 - 10):</label>
+                                <select id="surveyRatingApp" class="w-full bg-tekken-card border border-tekken-cardBorder rounded px-3 py-2 text-sm text-tekken-cyan font-bold">
+                                    <option value="10">10 - Super płynnie i czytelnie</option>
+                                    <option value="9">9 - Bardzo dobrze</option>
+                                    <option value="8">8 - Dobrze</option>
+                                    <option value="7">7 - Poprawnie</option>
+                                    <option value="6">6 - Średnio</option>
+                                    <option value="5">5 - Przeciętnie</option>
+                                    <option value="4">4 - Występowały błędy</option>
+                                    <option value="3">3 - Słabo</option>
+                                    <option value="2">2 - Bardzo słabo</option>
+                                    <option value="1">1 - Nieczytelne</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full py-2.5 tekken-btn-cyan rounded text-xs font-rajdhani font-bold uppercase text-black">
+                                Wyślij Anonimową Ankietę
+                            </button>
+                        </form>
+                        <div id="surveyThanksMsg" class="hidden text-center text-emerald-400 font-bold text-sm py-3">
+                            ✓ Dziękujemy! Twoja opinia została zarejestrowana.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Dashboard: Matches & Standings -->
+                <div id="playerActiveDashboard" class="space-y-6">
+                    <!-- My Active Matches Card -->
+                    <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
+                        <h3 class="font-teko text-2xl text-white uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="swords" class="w-5 h-5 text-tekken-red"></i> Twoje Nadchodzące / Rozgrywane Mecze
+                        </h3>
+                        <div id="playerMatchesList" class="space-y-3"></div>
+                    </div>
+
+                    <!-- My Group Standings View -->
+                    <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
+                        <h3 id="playerGroupNameHeader" class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider">
+                            Twoja Grupa
+                        </h3>
+                        <div id="playerGroupTableContainer"></div>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 2: ORGANIZER PANEL AREA            -->
+        <!-- ========================================== -->
+        <div id="mainOrganizerArea" class="hidden space-y-6">
+
+            <!-- TAB 1: SETUP & PARTICIPANTS -->
+            <div id="sec-setup" class="space-y-6">
+                
+                <!-- Quick Config & Rules Panel -->
+                <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
+                    <h2 class="font-teko text-2xl text-tekken-gold uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="settings" class="w-5 h-5"></i> Parametry Turnieju & Podział na Grupy
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div>
+                            <label class="block text-gray-400 font-bold uppercase mb-1">Maks. Graczy w Grupie</label>
+                            <input type="number" id="groupCapacityInput" value="4" min="2" max="16" onchange="setGroupCapacity(this.value)" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 font-bold uppercase mb-1">Tryb Przydziału do Grup</label>
+                            <div class="flex gap-1">
+                                <button id="btn-mode-auto" onclick="setAssignmentMode('auto')" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red w-1/2">
+                                    Automatyczny (Koszyki)
+                                </button>
+                                <button id="btn-mode-manual" onclick="setAssignmentMode('manual')" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white w-1/2">
+                                    Ręczny Przydział
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 font-bold uppercase mb-1">Kryterium Remisu w Grupie</label>
+                            <div class="flex gap-1">
+                                <button id="btn-tie-diff" onclick="setTiebreaker('diff')" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red w-1/2">
+                                    Bilans Rund (+/-)
+                                </button>
+                                <button id="btn-tie-h2h" onclick="setTiebreaker('h2h')" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white w-1/2">
+                                    Mecz Bezpośredni
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registration Pending Approvals -->
+                <div class="bg-tekken-card border border-tekken-gold/40 rounded-xl p-5 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-tekken-cardBorder pb-3">
+                        <h3 class="font-teko text-2xl text-tekken-gold uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="user-check" class="w-5 h-5"></i> Oczekujące Zgłoszenia Rejestracyjne (<span id="pendingCount">0</span>)
+                        </h3>
+                    </div>
+                    <div id="pendingPlayersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                </div>
+
+                <!-- Approved Players Management -->
+                <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
+                    <div class="flex flex-wrap justify-between items-center border-b border-tekken-cardBorder pb-3 gap-2">
+                        <h3 class="font-teko text-2xl text-white uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-tekken-cyan"></i> Zatwierdzeni Uczestnicy (<span id="playersCount">0</span>)
+                        </h3>
+                        <div class="text-xs text-gray-400 font-bold">
+                            Wyliczona Liczba Grup: <span id="calcGroupsCount" class="text-tekken-cyan font-bold text-sm">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Manual Add Player Form -->
+                    <form onsubmit="addPlayerManually(event)" class="flex flex-wrap gap-2">
+                        <input type="text" id="playerNameInput" placeholder="Nick / Imię gracza" required class="flex-grow bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-tekken-red">
+                        <input type="number" id="playerRankInput" placeholder="Ranga (np. 10, 0=debiut)" min="0" value="0" class="w-32 bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-xs text-white font-bold">
+                        
+                        <div id="manualGroupSelectContainer" class="hidden">
+                            <select id="playerGroupSelect" class="bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-xs text-white font-bold"></select>
+                        </div>
+
+                        <button type="submit" class="px-4 py-2 tekken-btn-red rounded text-xs font-rajdhani font-bold uppercase text-white">
+                            + Dodaj Gracza
+                        </button>
+                    </form>
+
+                    <!-- Quick Generator Controls -->
+                    <div class="flex flex-wrap justify-between items-center pt-2 gap-2">
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="quickCount" value="8" min="2" max="64" class="w-16 bg-tekken-bg border border-tekken-cardBorder rounded px-2 py-1 text-xs text-center font-bold text-white">
+                            <button onclick="generateQuickPlayers()" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-xs font-bold uppercase text-gray-300">
+                                Szybki Test (Losowi Gracze)
+                            </button>
+                        </div>
+                        <button onclick="confirmAndGenerateGroups()" class="px-6 py-2.5 tekken-btn-cyan rounded text-xs font-rajdhani font-bold uppercase text-black shadow-neon-cyan">
+                            Zatwierdź Uczestników & Generuj Grupy
+                        </button>
+                    </div>
+
+                    <!-- List of Approved Players -->
+                    <div id="playersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-3"></div>
+                </div>
+
+                <!-- Survey Analytics Box for Organizer -->
+                <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
+                    <h3 class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5"></i> Podsumowanie Ankiet Uczestników
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div class="bg-tekken-bg border border-tekken-cardBorder p-4 rounded-lg">
+                            <span class="text-xs font-bold text-gray-400 block uppercase">Średnia Ocena Organizacji</span>
+                            <span id="avgOrgRatingText" class="font-teko text-4xl text-tekken-gold font-bold">0.0 / 10</span>
+                        </div>
+                        <div class="bg-tekken-bg border border-tekken-cardBorder p-4 rounded-lg">
+                            <span class="text-xs font-bold text-gray-400 block uppercase">Średnia Ocena Aplikacji</span>
+                            <span id="avgAppRatingText" class="font-teko text-4xl text-tekken-cyan font-bold">0.0 / 10</span>
+                        </div>
+                        <div class="bg-tekken-bg border border-tekken-cardBorder p-4 rounded-lg">
+                            <span class="text-xs font-bold text-gray-400 block uppercase">Łączna Liczba Głosów</span>
+                            <span id="totalSurveyVotesText" class="font-teko text-4xl text-white font-bold">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: GROUP STAGE -->
+            <div id="sec-groups" class="hidden space-y-6">
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <h2 class="font-teko text-3xl text-white uppercase tracking-wider">Faza Grupowi – Tabele & Kolejki</h2>
+                    <div class="flex gap-2">
+                        <button onclick="simulateGroupScores()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-xs font-bold uppercase text-gray-300">
+                            Automatyczne Wyniki Grup (Symulacja)
+                        </button>
+                        <button onclick="advanceToKnockout()" class="px-5 py-2 tekken-btn-red rounded text-xs font-rajdhani font-bold uppercase text-white shadow-neon-red">
+                            Zatwierdź i Generuj Drabinkę Pucharową
+                        </button>
+                    </div>
+                </div>
+
+                <div id="groupsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+
+            <!-- TAB 3: KNOCKOUT STAGE -->
+            <div id="sec-knockout" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="font-teko text-3xl text-white uppercase tracking-wider">Faza Pucharowa (Drabinka Pucharowa)</h2>
+                    <button onclick="generateKnockoutBracket(false)" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-xs font-bold uppercase text-gray-300">
+                        Przegeneruj Drabinkę
+                    </button>
+                </div>
+
+                <div id="bracketTree" class="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-4"></div>
+            </div>
+
         </div>
     </main>
 
-    <!-- Match Result Modal (Organizer Manual Edit / Review) -->
-    <div id="matchModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-tekken-card border border-tekken-red rounded-xl p-6 max-w-md w-full shadow-neon-red max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4 border-b border-tekken-cardBorder pb-2">
-                <h3 id="modalTitle" class="font-teko text-2xl text-white uppercase tracking-wide">Panel Wyniku Meczu</h3>
-                <button onclick="closeMatchModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            
-            <div class="space-y-4">
-                <div id="modalFormatInfo" class="text-xs font-rajdhani text-tekken-gold font-bold uppercase text-center bg-tekken-darkBlue p-2 rounded border border-tekken-cardBorder">
-                    FORMAT: SINGLE MATCH (FT4)
-                </div>
-
-                <!-- Submissions Review Box -->
-                <div id="modalSubmissionsStatusBox" class="bg-tekken-bg border border-tekken-cardBorder p-3 rounded text-xs font-rajdhani space-y-1">
-                    <div class="font-bold uppercase text-gray-300 border-b border-tekken-cardBorder pb-1 mb-1">Status Zgłoszeń Graczy:</div>
-                    <div id="modalP1SubText" class="text-gray-400">P1: Brak zgłoszenia</div>
-                    <div id="modalP2SubText" class="text-gray-400">P2: Brak zgłoszenia</div>
-                </div>
-
-                <!-- Single Match Score Form -->
-                <div id="singleMatchContainer" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4 items-center">
-                        <div class="text-center p-3 bg-tekken-bg rounded-lg border border-tekken-cardBorder">
-                            <div id="modalP1Name" class="font-rajdhani font-bold text-white text-lg truncate mb-2">Gracz 1</div>
-                            <input type="number" id="modalP1Score" min="0" max="4" value="0" class="w-20 text-center font-teko text-4xl bg-tekken-darkBlue border border-tekken-red rounded text-white focus:outline-none mx-auto block">
-                        </div>
-
-                        <div class="text-center p-3 bg-tekken-bg rounded-lg border border-tekken-cardBorder">
-                            <div id="modalP2Name" class="font-rajdhani font-bold text-white text-lg truncate mb-2">Gracz 2</div>
-                            <input type="number" id="modalP2Score" min="0" max="4" value="0" class="w-20 text-center font-teko text-4xl bg-tekken-darkBlue border border-tekken-cyan rounded text-white focus:outline-none mx-auto block">
-                        </div>
-                    </div>
-
-                    <!-- Character selection for single match -->
-                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-tekken-cardBorder">
-                        <div>
-                            <label class="block text-[11px] font-rajdhani font-bold text-tekken-red uppercase mb-1">Postać P1 (Jednorazowa):</label>
-                            <select id="modalP1Char" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-tekken-red font-rajdhani">
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-rajdhani font-bold text-tekken-cyan uppercase mb-1">Postać P2 (Jednorazowa):</label>
-                            <select id="modalP2Char" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-tekken-cyan font-rajdhani">
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Series Matches Input (Semis, Finals, 3rd Place) -->
-                <div id="seriesMatchesContainer" class="hidden space-y-3">
-                    <div class="flex justify-between items-center text-sm font-rajdhani font-bold text-white bg-tekken-darkBlue p-2 rounded border border-tekken-cardBorder">
-                        <span id="seriesP1Name" class="text-tekken-red">Gracz 1</span>
-                        <span class="text-tekken-gold text-xs">SERIA (<span id="seriesScoreP1">0</span> : <span id="seriesScoreP2">0</span>)</span>
-                        <span id="seriesP2Name" class="text-tekken-cyan">Gracz 2</span>
-                    </div>
-
-                    <div id="seriesGamesList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-                    </div>
-                </div>
-
-                <div class="flex gap-3 pt-4 border-t border-tekken-cardBorder">
-                    <button onclick="closeMatchModal()" class="w-1/2 py-2.5 rounded bg-tekken-cardBorder hover:bg-gray-700 font-rajdhani font-bold text-white uppercase text-sm">
-                        Anuluj
-                    </button>
-                    <button onclick="saveMatchScore()" class="w-1/2 py-2.5 rounded tekken-btn-red font-rajdhani font-bold text-white uppercase text-sm">
-                        Zatwierdź Wynik
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PLAYER SCORE SUBMISSION MODAL -->
-    <div id="playerSubmitModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-tekken-card border border-tekken-cyan rounded-xl p-6 max-w-md w-full shadow-neon-cyan">
-            <div class="flex justify-between items-center mb-4 border-b border-tekken-cardBorder pb-2">
-                <h3 class="font-teko text-2xl text-white uppercase tracking-wide">Wprowadź Wynik Swojego Meczu</h3>
-                <button onclick="closePlayerSubmitModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-
-            <form onsubmit="submitPlayerMatchResult(event)" class="space-y-4 font-rajdhani">
-                <div class="text-center font-bold text-tekken-gold text-sm uppercase bg-tekken-darkBlue p-2 rounded border border-tekken-cardBorder">
-                    <span id="pModalMatchTitle">Mecz #</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 items-center">
-                    <div class="text-center p-3 bg-tekken-bg rounded-lg border border-tekken-cardBorder">
-                        <div id="pModalMyName" class="font-bold text-tekken-red text-base truncate mb-1">Ty</div>
-                        <label class="block text-[10px] text-gray-400 uppercase mb-1">Twoje wygrane rundy:</label>
-                        <input type="number" id="pModalMyScore" min="0" max="4" value="0" required class="w-20 text-center font-teko text-4xl bg-tekken-darkBlue border border-tekken-red rounded text-white focus:outline-none mx-auto block">
-                    </div>
-
-                    <div class="text-center p-3 bg-tekken-bg rounded-lg border border-tekken-cardBorder">
-                        <div id="pModalOpponentName" class="font-bold text-tekken-cyan text-base truncate mb-1">Przeciwnik</div>
-                        <label class="block text-[10px] text-gray-400 uppercase mb-1">Rundy przeciwnika:</label>
-                        <input type="number" id="pModalOpponentScore" min="0" max="4" value="0" required class="w-20 text-center font-teko text-4xl bg-tekken-darkBlue border border-tekken-cyan rounded text-white focus:outline-none mx-auto block">
-                    </div>
-                </div>
-
+    <!-- Modal: Organizer Login -->
+    <div id="adminAuthModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-tekken-card border border-tekken-red rounded-xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="font-teko text-3xl text-white uppercase tracking-wider text-center border-b border-tekken-cardBorder pb-2">
+                Logowanie Organizatora
+            </h3>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Postać jakną grałeś(aś):</label>
-                    <select id="pModalMyChar" required class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-cyan">
-                    </select>
-                    <p class="text-[10px] text-gray-500 mt-1">* Każdą postacią możesz zagrać tylko raz w całym turnieju!</p>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Login Administratora</label>
+                    <input type="text" id="adminLoginUser" required autocomplete="new-password" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-red">
                 </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="closePlayerSubmitModal()" class="w-1/2 py-2.5 rounded bg-tekken-cardBorder hover:bg-gray-700 font-bold text-white uppercase text-sm">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Hasło Administratora</label>
+                    <input type="password" id="adminLoginPass" required autocomplete="new-password" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-red">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeAdminAuthModal()" class="w-1/2 py-2 bg-gray-800 hover:bg-gray-700 rounded text-xs font-bold text-gray-300 uppercase">
                         Anuluj
                     </button>
-                    <button type="submit" class="w-1/2 py-2.5 rounded tekken-btn-gold font-bold text-black uppercase text-sm">
-                        Wyślij Wynik
+                    <button type="submit" class="w-1/2 py-2 tekken-btn-red rounded text-xs font-bold text-white uppercase shadow-neon-red">
+                        Zaloguj się
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- RESET TOURNAMENT CONFIRMATION MODAL -->
-    <div id="resetConfirmModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-tekken-card border border-red-600 rounded-xl p-6 max-w-md w-full shadow-neon-red space-y-4">
-            <div class="text-center space-y-2">
-                <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mx-auto animate-bounce"></i>
-                <h3 class="font-teko text-3xl text-white uppercase tracking-wider">Potwierdzenie Resetu Turnieju</h3>
-                <p class="text-xs text-gray-300 font-rajdhani">
-                    Czy na pewno chcesz zresetować cały turniej? <span class="text-red-400 font-bold block mt-1">Wszystkie utworzone konta graczy, mecze i anonimowe ankiety zostaną bezpowrotnie usunięte z bazy danych!</span>
-                </p>
+    <!-- Modal: Match Score Input (Organizer / Interactive) -->
+    <div id="matchModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+        <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-tekken-cardBorder pb-2">
+                <h3 id="modalTitle" class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider">Edycja Wyniku Meczu</h3>
+                <button onclick="closeMatchModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <div class="flex gap-3 pt-2">
-                <button type="button" onclick="closeResetModal()" class="w-1/2 py-2.5 rounded bg-tekken-cardBorder hover:bg-gray-700 text-white font-rajdhani font-bold uppercase text-sm">
+
+            <div id="modalFormatInfo" class="text-xs text-tekken-gold font-bold uppercase text-center bg-tekken-bg py-1 border border-tekken-cardBorder rounded"></div>
+
+            <!-- Single Match Score Form (Standard / Groups) -->
+            <div id="singleMatchContainer" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4 items-center">
+                    <!-- Player 1 -->
+                    <div class="space-y-2 text-center">
+                        <span id="modalP1Name" class="font-bold text-white text-base block truncate"></span>
+                        <input type="number" id="modalP1Score" min="0" max="4" value="0" class="w-20 mx-auto text-center font-teko text-4xl bg-tekken-bg border border-tekken-red rounded py-1 text-white font-bold focus:outline-none">
+                        <div>
+                            <label class="block text-[10px] text-gray-400 font-bold uppercase">Postać P1:</label>
+                            <select id="modalP1Char" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded text-xs px-2 py-1 text-white"></select>
+                        </div>
+                    </div>
+
+                    <!-- Player 2 -->
+                    <div class="space-y-2 text-center">
+                        <span id="modalP2Name" class="font-bold text-white text-base block truncate"></span>
+                        <input type="number" id="modalP2Score" min="0" max="4" value="0" class="w-20 mx-auto text-center font-teko text-4xl bg-tekken-bg border border-tekken-cyan rounded py-1 text-white font-bold focus:outline-none">
+                        <div>
+                            <label class="block text-[10px] text-gray-400 font-bold uppercase">Postać P2:</label>
+                            <select id="modalP2Char" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded text-xs px-2 py-1 text-white"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi-Game Series Container (Semi-Finals & Finals BO3 / BO5) -->
+            <div id="seriesMatchesContainer" class="hidden space-y-3">
+                <div class="flex justify-between items-center text-xs font-bold border-b border-tekken-cardBorder pb-2">
+                    <span id="seriesP1Name" class="text-tekken-red"></span>
+                    <span class="text-tekken-gold">Wynik Serii: <span id="seriesScoreP1">0</span> - <span id="seriesScoreP2">0</span></span>
+                    <span id="seriesP2Name" class="text-tekken-cyan"></span>
+                </div>
+                <div id="seriesGamesList" class="space-y-2"></div>
+            </div>
+
+            <!-- Submissions Verification Box -->
+            <div id="modalSubmissionsStatusBox" class="bg-tekken-bg border border-tekken-cardBorder rounded p-3 text-xs space-y-1">
+                <div class="font-bold text-gray-400 uppercase">Wyniki zgłoszone przez graczy z telefonów:</div>
+                <div id="modalP1SubText" class="text-gray-300"></div>
+                <div id="modalP2SubText" class="text-gray-300"></div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-tekken-cardBorder">
+                <button type="button" onclick="closeMatchModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded text-xs font-bold text-gray-300 uppercase">
                     Anuluj
                 </button>
-                <button type="button" onclick="executeResetTournament()" class="w-1/2 py-2.5 rounded bg-red-600 hover:bg-red-500 text-white font-rajdhani font-bold uppercase text-sm shadow-neon-red">
-                    Tak, Usuń Wszystko
+                <button type="button" onclick="saveMatchScore()" class="px-6 py-2 tekken-btn-red rounded text-xs font-bold text-white uppercase shadow-neon-red">
+                    Zapisz Wynik Meczu
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Application JavaScript Logic -->
+    <!-- Modal: Player Submit Match Form -->
+    <div id="playerSubmitModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+        <div class="bg-tekken-card border border-tekken-cyan rounded-xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 id="pModalMatchTitle" class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider text-center border-b border-tekken-cardBorder pb-2">
+                Zgłoś Wynik Meczu
+            </h3>
+            
+            <form onsubmit="submitPlayerMatchResult(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center space-y-2">
+                        <span id="pModalMyName" class="text-xs font-bold text-tekken-cyan block truncate"></span>
+                        <input type="number" id="pModalMyScore" min="0" max="4" value="0" required class="w-16 mx-auto text-center font-teko text-3xl bg-tekken-bg border border-tekken-cyan rounded py-1 text-white font-bold">
+                    </div>
+                    <div class="text-center space-y-2">
+                        <span id="pModalOpponentName" class="text-xs font-bold text-gray-400 block truncate"></span>
+                        <input type="number" id="pModalOpponentScore" min="0" max="4" value="0" required class="w-16 mx-auto text-center font-teko text-3xl bg-tekken-bg border border-tekken-cardBorder rounded py-1 text-white font-bold">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Postać, którą grałeś(aś):</label>
+                    <select id="pModalMyChar" required class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-xs text-white font-bold"></select>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closePlayerSubmitModal()" class="w-1/2 py-2 bg-gray-800 hover:bg-gray-700 rounded text-xs font-bold text-gray-300 uppercase">
+                        Anuluj
+                    </button>
+                    <button type="submit" class="w-1/2 py-2 tekken-btn-cyan rounded text-xs font-bold text-black uppercase shadow-neon-cyan">
+                        Prześlij Wynik
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT APP LOGIC -->
     <script>
-        // =========================================================================
-        // FIREBASE REALTIME DATABASE CONFIGURATION (EMBEDDED USER KEYS)
-        // =========================================================================
-        const firebaseConfig = {
-          apiKey: "AIzaSyAAgTHO9V-5X0-ay5IL-RXZ0_YhQy1wl1g",
-          authDomain: "tekkentournament.firebaseapp.com",
-          databaseURL: "https://tekkentournament-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "tekkentournament",
-          storageBucket: "tekkentournament.firebasestorage.app",
-          messagingSenderId: "33002728284",
-          appId: "1:33002728284:web:6166b6c0c30e9f249d6f99",
-          measurementId: "G-18VXJDJ93H"
-        };
-
-        let firebaseInitialized = false;
-        let fbDbRef = null;
-
-        function updateFirebaseStatusUI(status) {
-            const badge = document.getElementById('firebaseStatusBadge');
-            const led = document.getElementById('firebaseStatusLed');
-            const text = document.getElementById('firebaseStatusText');
-            if (!badge || !led || !text) return;
-
-            if (status === 'online') {
-                led.className = 'led-indicator led-green';
-                text.textContent = 'Cloud: Połączono (Online)';
-                text.className = 'text-emerald-400 font-bold';
-            } else if (status === 'error') {
-                led.className = 'led-indicator led-red';
-                text.textContent = 'Cloud: Błąd Połączenia';
-                text.className = 'text-rose-400 font-bold';
-            } else {
-                led.className = 'led-indicator led-orange';
-                text.textContent = 'Cloud: Tryb Lokalny';
-                text.className = 'text-amber-400 font-bold';
-            }
-        }
-
-        function initFirebaseIfConfigured() {
-            if (typeof firebase !== 'undefined' && firebaseConfig && firebaseConfig.databaseURL && !firebaseConfig.databaseURL.includes('TUTAJ_WKLEJ')) {
-                try {
-                    if (!firebase.apps.length) {
-                        firebase.initializeApp(firebaseConfig);
-                    }
-                    fbDbRef = firebase.database().ref('tournament');
-                    firebaseInitialized = true;
-                    updateFirebaseStatusUI('online');
-
-                    // Real-time synchronization listener for cloud database
-                    fbDbRef.on('value', (snapshot) => {
-                        const cloudData = snapshot.val();
-                        if (cloudData) {
-                            tournament = cloudData;
-                            if (!tournament.groupCapacity) tournament.groupCapacity = 4;
-                            if (!tournament.surveys) tournament.surveys = [];
-                            if (!tournament.players) tournament.players = [];
-                            localStorage.setItem('tekken7_tournament', JSON.stringify(tournament));
-                            renderApp();
-                            bc.postMessage({ type: 'UPDATE_TOURNAMENT', data: tournament });
-                        }
-                    }, (err) => {
-                        console.error("Firebase sync error:", err);
-                        updateFirebaseStatusUI('error');
-                    });
-                } catch (e) {
-                    console.error("Firebase init failed:", e);
-                    updateFirebaseStatusUI('error');
-                }
-            } else {
-                updateFirebaseStatusUI('offline');
-            }
-        }
-
-        // Toast Notifications
-        function showToast(msg, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-            const toast = document.createElement('div');
-            toast.className = `px-4 py-2.5 rounded-lg shadow-xl text-sm font-rajdhani font-bold uppercase tracking-wider border text-white pointer-events-auto transition-all transform translate-y-2 opacity-0 flex items-center gap-2 ${
-                type === 'error' ? 'bg-red-900 border-red-500' : 
-                type === 'success' ? 'bg-emerald-900 border-emerald-500' : 'bg-tekken-darkBlue border-tekken-cyan'
-            }`;
-            toast.innerHTML = `<i data-lucide="${type === 'error' ? 'alert-triangle' : 'check-circle'}" class="w-4 h-4"></i> ${msg}`;
-            container.appendChild(toast);
-            if (window.lucide && lucide.createIcons) lucide.createIcons();
-
-            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-            setTimeout(() => {
-                toast.classList.add('opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
+        // TEKKEN 7 CHARACTER RUSTER
         const TEKKEN_CHARACTERS = [
             "Akuma", "Alisa", "Anna", "Armor King", "Asuka", "Bob", "Bryan", "Claudio", 
-            "Devil Jin", "Eddy", "Eliza", "Fahkumram", "Ganryu", "Geese", "Gigas", "Heihachi", 
-            "Hwoarang", "Jack-7", "Jin", "Julia", "Kazuya", "King", "Kuma", "Kunimitsu", 
-            "Lars", "Law", "Lee", "Lei", "Leo", "Lidia", "Lili", "Lucky Chloe", "Marduk", 
+            "Devil Jin", "Eddy", "Eliza", "Fahkumram", "Ganryu", "Gigas", "Heihachi", 
+            "Hwoarang", "Jack-7", "Jin", "Julia", "Kazuya", "King", "Kuni mitsu", "Lars", 
+            "Law", "Lee", "Lei", "Leo", "Leroy", "Lidia", "Lili", "Lucky Chloe", "Marduk", 
             "Master Raven", "Miguel", "Negan", "Nina", "Noctis", "Panda", "Paul", "Shaheen", 
-            "Steve", "Xiaoyu", "Yoshimitsu", "Zafina"
-        ];
+            "Steve", "Vince", "Xiaoyu", "Yoshimitsu", "Zafina"
+        ].sort();
 
+        // SHA-256 HASH FOR ORGANIZER PASSWORD ("Wroclaw2026@")
+        const ADMIN_PASS_HASH = "e7fd7ffb12c6a461b65b6f3c17a59dfce93f93ce082494957e1bb939c0fa43a5";
+
+        // APP STATE OBJECT
         let tournament = {
             players: [],
             assignmentMode: 'auto',
@@ -819,13 +636,78 @@
             status: 'setup'
         };
 
-        let isAdminLoggedIn = false;
         let appRole = 'player';
+        let isAdminLoggedIn = false;
         let loggedPlayer = null;
         let currentActiveMatch = null;
         let playerSubmitMatchTarget = null;
+        let isFirebaseConnected = false;
+        let firebaseDb = null;
 
         const bc = new BroadcastChannel('tekken_tournament_channel');
+
+        // ==========================================
+        // FIREBASE REALTIME DATABASE CONFIGURATION
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAgTHO9V-5X0-ay5IL-RXZ0_YhQy1wl1g",
+            authDomain: "tekkentournament.firebaseapp.com",
+            databaseURL: "https://tekkentournament-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tekkentournament",
+            storageBucket: "tekkentournament.firebasestorage.app",
+            messagingSenderId: "33002728284",
+            appId: "1:33002728284:web:6166b6c0c30e9f249d6f99",
+            measurementId: "G-18VXJDJ93H"
+        };
+
+        function initFirebase() {
+            if (firebaseConfig.apiKey && firebaseConfig.databaseURL) {
+                try {
+                    firebase.initializeApp(firebaseConfig);
+                    firebaseDb = firebase.database();
+                    isFirebaseConnected = true;
+
+                    const statusBadge = document.getElementById('cloudStatusBadge');
+                    if (statusBadge) {
+                        statusBadge.className = "text-[10px] font-bold px-2 py-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 flex items-center gap-1";
+                        statusBadge.innerHTML = `<i data-lucide="cloud" class="w-3 h-3 text-emerald-400"></i> Cloud: Połączono`;
+                        if (window.lucide && lucide.createIcons) lucide.createIcons();
+                    }
+
+                    firebaseDb.ref('tournament_data').on('value', (snapshot) => {
+                        const val = snapshot.val();
+                        if (val) {
+                            tournament = val;
+                            renderApp();
+                        }
+                    });
+                } catch(e) {
+                    console.warn("Firebase Init Warning:", e);
+                }
+            }
+        }
+
+        // SHA-256 Hashing helper
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-950 border-emerald-500 text-emerald-200' :
+                            type === 'error' ? 'bg-rose-950 border-rose-500 text-rose-200' :
+                            'bg-tekken-card border-tekken-cyan text-tekken-cyan';
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-lg border text-xs font-bold font-rajdhani shadow-2xl transition-all flex items-center gap-2 ${bgClass}`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3500);
+        }
 
         function toggleActionMenu(e) {
             if (e) e.stopPropagation();
@@ -879,16 +761,8 @@
         }
 
         function openAdminAuthModal() {
-            const uInput = document.getElementById('adminLoginUserModal');
-            const pInput = document.getElementById('adminLoginPassModal');
-            if (uInput) {
-                uInput.value = '';
-                uInput.setAttribute('readonly', 'readonly');
-            }
-            if (pInput) {
-                pInput.value = '';
-                pInput.setAttribute('readonly', 'readonly');
-            }
+            document.getElementById('adminLoginUser').value = '';
+            document.getElementById('adminLoginPass').value = '';
             document.getElementById('adminAuthModal').classList.remove('hidden');
         }
 
@@ -896,12 +770,13 @@
             document.getElementById('adminAuthModal').classList.add('hidden');
         }
 
-        function handleAdminLogin(e) {
+        async function handleAdminLogin(e) {
             e.preventDefault();
-            const u = document.getElementById('adminLoginUserModal').value.trim();
-            const p = document.getElementById('adminLoginPassModal').value;
+            const u = document.getElementById('adminLoginUser').value.trim();
+            const p = document.getElementById('adminLoginPass').value;
+            const pHash = await sha256(p);
 
-            if (u === 'kuna230796' && p === 'Wroclaw2026@') {
+            if (u === 'kuna230796' && pHash === ADMIN_PASS_HASH) {
                 isAdminLoggedIn = true;
                 closeAdminAuthModal();
                 showToast("Zalogowano jako Administrator!", "success");
@@ -923,25 +798,39 @@
             const formLogin = document.getElementById('formLogin');
             const formRegister = document.getElementById('formRegister');
 
-            if (!btnLogin || !btnReg || !formLogin || !formRegister) return;
-
-            btnLogin.className = "w-1/2 py-2.5 text-gray-400 hover:text-white font-bold";
-            btnReg.className = "w-1/2 py-2.5 text-gray-400 hover:text-white font-bold";
-
-            formLogin.classList.add('hidden');
-            formRegister.classList.add('hidden');
-
             if (tab === 'login') {
-                btnLogin.className = "w-1/2 py-2.5 text-tekken-red border-b-2 border-tekken-red font-bold";
+                btnLogin.className = "w-1/2 py-2 font-rajdhani font-bold text-sm uppercase text-tekken-red border-b-2 border-tekken-red";
+                btnReg.className = "w-1/2 py-2 font-rajdhani font-bold text-sm uppercase text-gray-400 hover:text-white";
                 formLogin.classList.remove('hidden');
-            } else if (tab === 'register') {
-                btnReg.className = "w-1/2 py-2.5 text-tekken-cyan border-b-2 border-tekken-cyan font-bold";
+                formRegister.classList.add('hidden');
+            } else {
+                btnReg.className = "w-1/2 py-2 font-rajdhani font-bold text-sm uppercase text-tekken-cyan border-b-2 border-tekken-cyan";
+                btnLogin.className = "w-1/2 py-2 font-rajdhani font-bold text-sm uppercase text-gray-400 hover:text-white";
                 formRegister.classList.remove('hidden');
+                formLogin.classList.add('hidden');
+                updateRegistrationFormLockStatus();
+            }
+        }
+
+        function updateRegistrationFormLockStatus() {
+            const lockNotice = document.getElementById('registrationLockedNotice');
+            const fields = document.getElementById('registerFields');
+            if (tournament.status !== 'setup') {
+                if (lockNotice) lockNotice.classList.remove('hidden');
+                if (fields) fields.classList.add('hidden');
+            } else {
+                if (lockNotice) lockNotice.classList.add('hidden');
+                if (fields) fields.classList.remove('hidden');
             }
         }
 
         function handlePlayerRegister(e) {
             e.preventDefault();
+            if (tournament.status !== 'setup') {
+                showToast("Rejestracja na turniej została zamknięta!", "error");
+                return;
+            }
+
             const login = document.getElementById('regLogin').value.trim();
             const name = document.getElementById('regName').value.trim();
             const pass = document.getElementById('regPassword').value;
@@ -970,6 +859,8 @@
             saveAndSync();
 
             loggedPlayer = newPlayer;
+            localStorage.setItem('loggedPlayerId', newPlayer.id);
+
             document.getElementById('regLogin').value = '';
             document.getElementById('regName').value = '';
             document.getElementById('regPassword').value = '';
@@ -991,12 +882,14 @@
             }
 
             loggedPlayer = player;
+            localStorage.setItem('loggedPlayerId', player.id);
             showToast(`Zalogowano jako ${player.name}`, "success");
             renderPlayerPanel();
         }
 
         function logoutPlayer() {
             loggedPlayer = null;
+            localStorage.removeItem('loggedPlayerId');
             showToast("Wylogowano", "info");
             renderPlayerPanel();
         }
@@ -1008,9 +901,18 @@
             const loggedNickEl = document.getElementById('loggedPlayerNickname');
 
             if (!loggedPlayer) {
+                const storedPlayerId = localStorage.getItem('loggedPlayerId');
+                if (storedPlayerId && tournament.players) {
+                    const found = tournament.players.find(p => p.id === storedPlayerId);
+                    if (found) loggedPlayer = found;
+                }
+            }
+
+            if (!loggedPlayer) {
                 authSec.classList.remove('hidden');
                 dashSec.classList.add('hidden');
                 headerInfo.classList.add('hidden');
+                updateRegistrationFormLockStatus();
                 return;
             }
 
@@ -1030,7 +932,6 @@
                 pendingNotice.classList.remove('hidden');
                 activeDash.classList.add('hidden');
                 elimSec.classList.add('hidden');
-                renderSurveyCardState();
                 return;
             }
 
@@ -1047,21 +948,6 @@
 
             activeDash.classList.remove('hidden');
             renderPlayerMatchesAndTable();
-            renderSurveyCardState();
-        }
-
-        function renderSurveyCardState() {
-            const surveyForm = document.getElementById('surveyForm');
-            const surveyThanks = document.getElementById('surveyThanksMsg');
-            if (!surveyForm || !surveyThanks) return;
-
-            if (loggedPlayer && loggedPlayer.votedSurvey) {
-                surveyForm.classList.add('hidden');
-                surveyThanks.classList.remove('hidden');
-            } else {
-                surveyForm.classList.remove('hidden');
-                surveyThanks.classList.add('hidden');
-            }
         }
 
         function getPlayerFinalStatus(playerName) {
@@ -1121,8 +1007,11 @@
 
         function renderPlayerEliminationHeader(status) {
             const headerContainer = document.getElementById('playerCongratulationsHeader');
+            const surveyForm = document.getElementById('surveyForm');
+            const surveyThanks = document.getElementById('surveyThanksMsg');
+
             if (status.isTop4) {
-                const medalIcon = status.place === 1 ? '🥇' : status.place === 2 ? '🥈' : status.place === 3 ? '🥉' : '🎖️';
+                const medalIcon = status.place === 1 ? '🥇' : status.place === 2 ? '🥈' : status.place === 3 ? '🥉' : '';
                 headerContainer.innerHTML = `
                     <h2 class="font-teko text-4xl text-tekken-gold uppercase tracking-wider">
                         ${medalIcon} Gratulujemy zajęcia ${status.place} miejsca!
@@ -1130,6 +1019,14 @@
                 `;
             } else {
                 headerContainer.innerHTML = ``;
+            }
+
+            if (loggedPlayer && loggedPlayer.votedSurvey) {
+                surveyForm.classList.add('hidden');
+                surveyThanks.classList.remove('hidden');
+            } else {
+                surveyForm.classList.remove('hidden');
+                surveyThanks.classList.add('hidden');
             }
         }
 
@@ -1192,7 +1089,6 @@
                 grNameHeader.textContent = myGroup ? `Twoja Grupa: ${myGroup.name}` : '';
             }
 
-            // Group Table Render
             if (myGroup) {
                 let sorted = [...myGroup.players].sort((a, b) => sortPlayersInGroup(a, b, myGroup));
                 groupTableContainer.innerHTML = `
@@ -1236,7 +1132,6 @@
                 groupTableContainer.innerHTML = `<div class="text-xs text-gray-500 py-2">Faza grupowa nie została jeszcze rozpoczęta.</div>`;
             }
 
-            // Player Matches Render
             let myMatches = [];
 
             if (tournament.groups) {
@@ -1307,7 +1202,7 @@
 
                         <div>
                             ${canSubmit ? `
-                                <button onclick="openPlayerSubmitModal('${item.type}', ${item.gIdx ?? item.rIdx}, ${item.mIdx})" class="tekken-btn-gold px-4 py-2 rounded text-xs font-rajdhani font-bold uppercase tracking-wider">
+                                <button type="button" onclick="openPlayerSubmitModal('${item.type}', ${item.gIdx ?? item.rIdx}, ${item.mIdx})" class="tekken-btn-gold px-4 py-2 rounded text-xs font-rajdhani font-bold uppercase tracking-wider">
                                     <i data-lucide="edit-3" class="w-4 h-4 inline mr-1"></i> Wprowadź Wynik
                                 </button>
                             ` : ''}
@@ -1497,9 +1392,7 @@
                 loadFromLocalStorage();
             }
 
-            // Cloud sync initialization
-            initFirebaseIfConfigured();
-
+            initFirebase();
             renderApp();
             setAppRole('player');
 
@@ -1514,8 +1407,8 @@
         function saveAndSync() {
             localStorage.setItem('tekken7_tournament', JSON.stringify(tournament));
             saveToDB();
-            if (firebaseInitialized && fbDbRef) {
-                fbDbRef.set(tournament).catch(err => console.error("Firebase write error:", err));
+            if (isFirebaseConnected && firebaseDb) {
+                firebaseDb.ref('tournament_data').set(tournament);
             }
             bc.postMessage({ type: 'UPDATE_TOURNAMENT', data: tournament });
         }
@@ -1527,7 +1420,7 @@
                     tournament = JSON.parse(saved);
                     if (!tournament.groupCapacity) tournament.groupCapacity = 4;
                     if (!tournament.surveys) tournament.surveys = [];
-                    if (!tournament.players) tournament.players = [];
+                    if (!tournament.status) tournament.status = 'setup';
                 } catch(e) {}
             }
         }
@@ -1785,7 +1678,6 @@
 
             if (tournament.assignmentMode === 'manual') updateManualGroupSelectOptions();
 
-            // Render Pending
             if (pendingPlayers.length === 0) {
                 pendingListEl.innerHTML = `<div class="col-span-full text-center py-4 text-gray-500 font-rajdhani">Brak nowych zgłoszeń graczy.</div>`;
             } else {
@@ -1807,7 +1699,7 @@
                             </select>
                         </div>
                         <div class="flex gap-2 pt-1">
-                            <button onclick="approvePlayer(${tournament.players.indexOf(p)})" class="w-full py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase rounded transition">
+                            <button type="button" onclick="approvePlayer(${tournament.players.indexOf(p)})" class="w-full py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase rounded transition">
                                 Zatwierdź
                             </button>
                         </div>
@@ -1815,7 +1707,6 @@
                 `).join('');
             }
 
-            // Render Approved
             if (approvedPlayers.length === 0) {
                 listEl.innerHTML = `<div class="col-span-full text-center py-8 text-gray-500 font-rajdhani">Brak zatwierdzonych uczestników.</div>`;
                 return;
@@ -1837,7 +1728,7 @@
                         <select onchange="updatePlayerManualGroup(${idx}, this.value)" class="bg-tekken-bg border border-tekken-cyan/40 text-tekken-cyan text-xs font-bold rounded px-1.5 py-1">
                             ${getGroupLetters(gCount).map(l => `<option value="${l}" ${l === p.manualGroup ? 'selected' : ''}>Gr. ${l}</option>`).join('')}
                         </select>
-                        <button onclick="removePlayer(${tournament.players.indexOf(p)})" class="text-gray-500 hover:text-red-400 p-1">
+                        <button type="button" onclick="removePlayer(${tournament.players.indexOf(p)})" class="text-gray-500 hover:text-red-400 p-1">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>
@@ -1945,7 +1836,6 @@
                 groups.sort((a, b) => a.letter.localeCompare(b.letter));
             }
 
-            // Generate Match Queues & Global Match Numbers
             groups.forEach(g => {
                 g.rounds = generateBergerGroupMatches(g.players);
                 g.matches = [];
@@ -1971,7 +1861,7 @@
             saveAndSync();
             switchTab('groups');
             renderGroups();
-            showToast("Wygenerowano mecze z kolejnością rund!", "success");
+            showToast("Wygenerowano mecze! Rejestracja została zamknięta.", "success");
         }
 
         function sortPlayersInGroup(a, b, g) {
@@ -1996,6 +1886,7 @@
         }
 
         function updateGroupStandings() {
+            if (!tournament.groups) return;
             tournament.groups.forEach(g => {
                 g.players.forEach(p => {
                     p.points = 0; p.wins = 0; p.losses = 0;
@@ -2110,7 +2001,6 @@
                             </table>
                         </div>
 
-                        <!-- MATCHES BY ROUNDS (KOLEJKI) -->
                         <div class="space-y-3 pt-2 border-t border-tekken-cardBorder">
                             <h4 class="font-teko text-lg text-white uppercase tracking-wider">Kolejki i Mecze w Grupie</h4>
                             <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
@@ -2411,6 +2301,7 @@
 
         function getGroupRankings() {
             let rankings = [];
+            if (!tournament.groups) return rankings;
             tournament.groups.forEach(g => {
                 let sorted = [...g.players].sort((a, b) => sortPlayersInGroup(a, b, g));
                 rankings.push({
@@ -2734,7 +2625,7 @@
             `;
         }
 
-        // CSV EXPORT (EXCEL COMPATIBLE WITH BOM UTF-8)
+        // EXPORT / IMPORT / RESET
         function exportToCSV() {
             if (!tournament.players || tournament.players.length === 0) {
                 showToast("Brak danych turnieju do eksportu", "error");
@@ -2792,7 +2683,6 @@
             showToast("Wyeksportowano raport CSV (Excel)!", "success");
         }
 
-        // JSON EXPORT & IMPORT
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tournament, null, 2));
             const dl = document.createElement('a');
@@ -2821,46 +2711,32 @@
             reader.readAsText(file);
         }
 
-        // FULL RESET TOURNAMENT (MODAL BASED)
-        function openResetModal() {
-            document.getElementById('resetConfirmModal').classList.remove('hidden');
-        }
-
-        function closeResetModal() {
-            document.getElementById('resetConfirmModal').classList.add('hidden');
-        }
-
-        function executeResetTournament() {
-            localStorage.removeItem('tekken7_tournament');
-            if (db) {
-                try {
-                    const tx = db.transaction('store', 'readwrite');
-                    tx.objectStore('store').delete('current_tournament');
-                } catch(e) {}
+        function resetTournament() {
+            if (confirm("Czy na pewno chcesz zresetować cały turniej? Wszystkie utworzone konta graczy, mecze i ankiety zostaną bezpowrotnie usunięte.")) {
+                localStorage.removeItem('tekken7_tournament');
+                localStorage.removeItem('loggedPlayerId');
+                if (db) {
+                    try {
+                        const tx = db.transaction('store', 'readwrite');
+                        tx.objectStore('store').delete('current_tournament');
+                    } catch(e) {}
+                }
+                tournament = {
+                    players: [],
+                    assignmentMode: 'auto',
+                    groupCapacity: 4,
+                    tiebreaker: 'diff',
+                    groups: [],
+                    knockout: { rounds: [], thirdPlaceMatch: null },
+                    surveys: [],
+                    status: 'setup'
+                };
+                loggedPlayer = null;
+                saveAndSync();
+                renderApp();
+                switchTab('setup');
+                showToast("Zresetowano turniej - usunięto wszystkie konta i mecze", "info");
             }
-            tournament = {
-                players: [],
-                assignmentMode: 'auto',
-                groupCapacity: 4,
-                tiebreaker: 'diff',
-                groups: [],
-                knockout: { rounds: [], thirdPlaceMatch: null },
-                surveys: [],
-                status: 'setup'
-            };
-            loggedPlayer = null;
-            isAdminLoggedIn = false;
-
-            if (firebaseInitialized && fbDbRef) {
-                fbDbRef.set(tournament).catch(err => console.error("Firebase reset error:", err));
-            }
-
-            saveAndSync();
-            closeResetModal();
-            renderApp();
-            setAppRole('player');
-            switchTab('setup');
-            showToast("Zresetowano turniej - usunięto wszystkie konta, mecze i ankiety", "info");
         }
 
         function renderApp() {
@@ -2870,7 +2746,7 @@
             if (appRole === 'player') renderPlayerPanel();
         }
 
-        // Live Window (2nd Monitor View)
+        // LIVE MONITOR WINDOW (2. MONITOR WITH SCROLL CONTROLS & SECTIONS)
         function openLiveWindow() {
             const liveWin = window.open('', 'TekkenLiveDisplay', 'width=1280,height=720');
             if (!liveWin) {
@@ -2892,6 +2768,7 @@
     </style>
 </head>
 <body class="p-6 pb-20">
+    <!-- STICKY CONTROL BAR FOR 2nd MONITOR -->
     <div id="liveHeader" class="sticky top-0 z-50 bg-[#050508]/95 backdrop-blur border-b border-red-600/40 pb-3 mb-6 flex flex-wrap justify-between items-center gap-4">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-red-600 flex items-center justify-center font-teko text-xl font-bold text-white shadow-lg">
@@ -2904,19 +2781,87 @@
                 <p class="text-xs text-yellow-400 font-bold uppercase tracking-widest">by Michał „Majsik” Długaszewski | Pub Salonik 28.11.2026r.</p>
             </div>
         </div>
+
+        <!-- Scroll & Filter Controls -->
+        <div class="flex items-center gap-3 text-xs font-bold bg-gray-900 border border-gray-800 p-2 rounded-lg">
+            <button id="btnToggleScroll" onclick="toggleAutoScroll()" class="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded font-bold uppercase">
+                ⏸ Pauza Autoscroll
+            </button>
+            <div class="flex items-center gap-1 text-gray-300">
+                <span>Prędkość:</span>
+                <select id="scrollSpeedSelect" onchange="setScrollSpeed(this.value)" class="bg-black border border-gray-700 text-yellow-400 rounded px-2 py-0.5 font-bold">
+                    <option value="1">Wolno (1px)</option>
+                    <option value="2" selected>Średnio (2px)</option>
+                    <option value="4">Szybko (4px)</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-3 border-l border-gray-700 pl-3">
+                <label class="flex items-center gap-1 cursor-pointer text-gray-300">
+                    <input type="checkbox" id="chkShowPodium" checked onchange="toggleSection('podiumArea', this.checked)"> Podium
+                </label>
+                <label class="flex items-center gap-1 cursor-pointer text-gray-300">
+                    <input type="checkbox" id="chkShowKnockout" checked onchange="toggleSection('secKnockout', this.checked)"> Drabinka
+                </label>
+                <label class="flex items-center gap-1 cursor-pointer text-gray-300">
+                    <input type="checkbox" id="chkShowGroups" checked onchange="toggleSection('secGroups', this.checked)"> Grupy
+                </label>
+            </div>
+        </div>
     </div>
+
     <div id="podiumArea" class="hidden mb-10"></div>
     <div id="liveContent" class="space-y-10"></div>
 
     <script>
         const bcLive = new BroadcastChannel("tekken_tournament_channel");
         let confettiFired = false;
+        let isScrolling = true;
+        let scrollSpeed = 2;
+        let scrollInterval = null;
 
         bcLive.onmessage = (e) => { if (e.data && e.data.type === "UPDATE_TOURNAMENT") renderLive(e.data.data); };
         window.onload = function() {
             const saved = localStorage.getItem("tekken7_tournament");
             if (saved) { try { renderLive(JSON.parse(saved)); } catch(err) {} }
+            startAutoScroll();
         };
+
+        function startAutoScroll() {
+            if (scrollInterval) clearInterval(scrollInterval);
+            scrollInterval = setInterval(() => {
+                if (!isScrolling) return;
+                const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                if (maxScroll <= 0) return;
+
+                if (window.scrollY >= maxScroll - 5) {
+                    isScrolling = false;
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setTimeout(() => { isScrolling = true; }, 3000);
+                    }, 3000);
+                } else {
+                    window.scrollBy(0, scrollSpeed);
+                }
+            }, 50);
+        }
+
+        function toggleAutoScroll() {
+            isScrolling = !isScrolling;
+            const btn = document.getElementById('btnToggleScroll');
+            if (btn) btn.textContent = isScrolling ? '⏸ Pauza Autoscroll' : '▶ Start Autoscroll';
+        }
+
+        function setScrollSpeed(val) {
+            scrollSpeed = parseInt(val) || 2;
+        }
+
+        function toggleSection(id, show) {
+            const el = document.getElementById(id);
+            if (el) {
+                if (show) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            }
+        }
 
         function getLiveMatchPlayerName(rawName, type, rIdx, mIdx, rounds) {
             if (rawName && rawName !== 'BYE' && rawName !== 'Oczekiwanie...' && rawName !== 'Oczekiwany') {
@@ -2962,7 +2907,8 @@
             }
 
             if (p1st && p2nd && p3rd && p4th) {
-                podiumContainer.classList.remove("hidden");
+                const chkPodium = document.getElementById('chkShowPodium');
+                if (!chkPodium || chkPodium.checked) podiumContainer.classList.remove("hidden");
                 podiumContainer.innerHTML = \`
                     <div class="bg-gradient-to-r from-yellow-950/40 via-red-950/40 to-cyan-950/40 border-2 border-yellow-500/60 rounded-2xl p-6 text-center space-y-6 shadow-2xl">
                         <h2 class="font-teko text-5xl text-yellow-400 uppercase tracking-widest animate-pulse">👑 OFICJALNE PODIUM TURNIEJU 👑</h2>
@@ -2996,48 +2942,9 @@
                 podiumContainer.classList.add("hidden");
             }
 
-            // Groups
-            if (data.groups && data.groups.length > 0) {
-                html += '<section><h2 class="font-teko text-4xl text-yellow-400 mb-4 uppercase tracking-wider">Faza Grupowa</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
-                data.groups.forEach(g => {
-                    html += '<div class="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-lg space-y-3">';
-                    html += '<h3 class="font-teko text-3xl text-cyan-400 border-b border-gray-800 pb-1 flex justify-between"><span>' + g.name + '</span><span class="text-xs text-gray-500 font-rajdhani self-center">' + g.players.length + ' Graczy</span></h3>';
-                    html += '<table class="w-full text-xs"><tr class="text-gray-400 border-b border-gray-800 text-left"><th class="pb-1">#</th><th class="pb-1">Gracz</th><th class="text-center pb-1">M</th><th class="text-center pb-1">Z</th><th class="text-center pb-1">P</th><th class="text-center pb-1">R+</th><th class="text-center pb-1">R-</th><th class="text-center pb-1">(+/-)</th><th class="text-center pb-1 text-yellow-400">Pkt</th></tr>';
-                    let sorted = [...g.players].sort((a,b) => (b.points||0) - (a.points||0) || (b.diff||0) - (a.diff||0));
-                    sorted.forEach((p, idx) => {
-                        html += '<tr class="' + (idx < 2 ? 'bg-cyan-500/10 font-bold' : '') + '">';
-                        html += '<td class="py-1 px-1 text-yellow-400">' + (idx + 1) + '</td>';
-                        html += '<td class="py-1 px-1 text-white font-bold">' + p.name + (idx < 2 ? '<span class="bg-cyan-400 text-black text-[8px] px-1 rounded uppercase font-bold ml-1">AWANS</span>' : '') + '</td>';
-                        html += '<td class="py-1 px-1 text-center">' + ((p.wins||0)+(p.losses||0)) + '</td>';
-                        html += '<td class="py-1 px-1 text-center text-emerald-400">' + (p.wins||0) + '</td>';
-                        html += '<td class="py-1 px-1 text-center text-rose-400">' + (p.losses||0) + '</td>';
-                        html += '<td class="py-1 px-1 text-center">' + (p.roundsWon||0) + '</td>';
-                        html += '<td class="py-1 px-1 text-center">' + (p.roundsLost||0) + '</td>';
-                        html += '<td class="py-1 px-1 text-center">' + (p.diff > 0 ? '+' + p.diff : (p.diff||0)) + '</td>';
-                        html += '<td class="py-1 px-1 text-center text-yellow-400 font-bold">' + (p.points||0) + '</td>';
-                        html += '</tr>';
-                    });
-                    html += '</table>';
-
-                    if (g.rounds && g.rounds.length > 0) {
-                        html += '<div class="pt-2 border-t border-gray-800 space-y-2"><div class="text-xs text-yellow-400 font-bold uppercase">Mecze po kolejkach:</div>';
-                        g.rounds.forEach(r => {
-                            html += '<div class="bg-black/40 p-2 rounded space-y-1"><div class="text-[10px] text-gray-400 font-bold flex justify-between"><span>KOLEJKA ' + r.roundNum + '</span>' + (r.pausePlayer ? '<span class="text-cyan-400">Pauzuje: ' + r.pausePlayer + '</span>' : '') + '</div>';
-                            r.matches.forEach(m => {
-                                html += '<div class="flex justify-between items-center text-xs bg-gray-900 px-2 py-1 rounded"><span class="w-5/12 text-right truncate font-bold">' + m.p1 + (m.p1Char ? ' ('+m.p1Char+')' : '') + '</span><span class="font-teko text-base px-2 text-yellow-400 bg-black rounded">' + (m.played ? m.p1Score + ':' + m.p2Score : 'M#' + m.globalNum) + '</span><span class="w-5/12 truncate font-bold">' + m.p2 + (m.p2Char ? ' ('+m.p2Char+')' : '') + '</span></div>';
-                            });
-                            html += '</div>';
-                        });
-                        html += '</div>';
-                    }
-                    html += '</div>';
-                });
-                html += '</div></section>';
-            }
-
-            // Knockout Stage
+            // Knockout Stage Live Display
             if (data.knockout && data.knockout.rounds && data.knockout.rounds.length > 0) {
-                html += '<section><h2 class="font-teko text-4xl text-red-500 mb-4 uppercase tracking-wider">Faza Pucharowa</h2><div class="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-4">';
+                html += '<section id="secKnockout"><h2 class="font-teko text-4xl text-red-500 mb-4 uppercase tracking-wider">Faza Pucharowa</h2><div class="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-4">';
                 data.knockout.rounds.forEach((r, rIdx) => {
                     const isSemiOrFinalLive = (r.name === 'Półfinał' || r.name === 'Finał');
                     html += '<div class="flex-1 min-w-[280px] bg-gray-900/90 border border-gray-800 rounded-xl p-4 space-y-4">';
@@ -3082,6 +2989,45 @@
                     html += '</div></div>';
                 }
 
+                html += '</div></section>';
+            }
+
+            // Group Stage Live Display
+            if (data.groups && data.groups.length > 0) {
+                html += '<section id="secGroups"><h2 class="font-teko text-4xl text-yellow-400 mb-4 uppercase tracking-wider">Faza Grupowa</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
+                data.groups.forEach(g => {
+                    html += '<div class="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-lg space-y-3">';
+                    html += '<h3 class="font-teko text-3xl text-cyan-400 border-b border-gray-800 pb-1 flex justify-between"><span>' + g.name + '</span><span class="text-xs text-gray-500 font-rajdhani self-center">' + g.players.length + ' Graczy</span></h3>';
+                    html += '<table class="w-full text-xs"><tr class="text-gray-400 border-b border-gray-800 text-left"><th class="pb-1">#</th><th class="pb-1">Gracz</th><th class="text-center pb-1">M</th><th class="text-center pb-1">Z</th><th class="text-center pb-1">P</th><th class="text-center pb-1">R+</th><th class="text-center pb-1">R-</th><th class="text-center pb-1">(+/-)</th><th class="text-center pb-1 text-yellow-400">Pkt</th></tr>';
+                    let sorted = [...g.players].sort((a,b) => (b.points||0) - (a.points||0) || (b.diff||0) - (a.diff||0));
+                    sorted.forEach((p, idx) => {
+                        html += '<tr class="' + (idx < 2 ? 'bg-cyan-500/10 font-bold' : '') + '">';
+                        html += '<td class="py-1 px-1 text-yellow-400">' + (idx + 1) + '</td>';
+                        html += '<td class="py-1 px-1 text-white font-bold">' + p.name + (idx < 2 ? '<span class="bg-cyan-400 text-black text-[8px] px-1 rounded uppercase font-bold ml-1">AWANS</span>' : '') + '</td>';
+                        html += '<td class="py-1 px-1 text-center">' + ((p.wins||0)+(p.losses||0)) + '</td>';
+                        html += '<td class="py-1 px-1 text-center text-emerald-400">' + (p.wins||0) + '</td>';
+                        html += '<td class="py-1 px-1 text-center text-rose-400">' + (p.losses||0) + '</td>';
+                        html += '<td class="py-1 px-1 text-center">' + (p.roundsWon||0) + '</td>';
+                        html += '<td class="py-1 px-1 text-center">' + (p.roundsLost||0) + '</td>';
+                        html += '<td class="py-1 px-1 text-center">' + (p.diff > 0 ? '+' + p.diff : (p.diff||0)) + '</td>';
+                        html += '<td class="py-1 px-1 text-center text-yellow-400 font-bold">' + (p.points||0) + '</td>';
+                        html += '</tr>';
+                    });
+                    html += '</table>';
+
+                    if (g.rounds && g.rounds.length > 0) {
+                        html += '<div class="pt-2 border-t border-gray-800 space-y-2"><div class="text-xs text-yellow-400 font-bold uppercase">Mecze po kolejkach:</div>';
+                        g.rounds.forEach(r => {
+                            html += '<div class="bg-black/40 p-2 rounded space-y-1"><div class="text-[10px] text-gray-400 font-bold flex justify-between"><span>KOLEJKA ' + r.roundNum + '</span>' + (r.pausePlayer ? '<span class="text-cyan-400">Pauzuje: ' + r.pausePlayer + '</span>' : '') + '</div>';
+                            r.matches.forEach(m => {
+                                html += '<div class="flex justify-between items-center text-xs bg-gray-900 px-2 py-1 rounded"><span class="w-5/12 text-right truncate font-bold">' + m.p1 + (m.p1Char ? ' ('+m.p1Char+')' : '') + '</span><span class="font-teko text-base px-2 text-yellow-400 bg-black rounded">' + (m.played ? m.p1Score + ':' + m.p2Score : 'M#' + m.globalNum) + '</span><span class="w-5/12 truncate font-bold">' + m.p2 + (m.p2Char ? ' ('+m.p2Char+')' : '') + '</span></div>';
+                            });
+                            html += '</div>';
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                });
                 html += '</div></section>';
             }
 
