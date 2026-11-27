@@ -383,6 +383,9 @@
                         <h3 class="font-teko text-2xl text-tekken-gold uppercase tracking-wider flex items-center gap-2">
                             <i data-lucide="user-check" class="w-5 h-5"></i> Oczekujące Zgłoszenia Rejestracyjne (<span id="pendingCount">0</span>)
                         </h3>
+                        <button onclick="approveAllPendingPlayers()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold uppercase transition">
+                            Zatwierdź Wszystkich
+                        </button>
                     </div>
                     <div id="pendingPlayersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
                 </div>
@@ -492,11 +495,11 @@
             <form onsubmit="handleAdminLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Login Administratora</label>
-                    <input type="text" id="adminLoginUser" required autocomplete="new-password" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-red">
+                    <input type="text" id="adminLoginUser" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-red">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Hasło Administratora</label>
-                    <input type="password" id="adminLoginPass" required autocomplete="new-password" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-red">
+                    <input type="password" id="adminLoginPass" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-red">
                 </div>
                 <div class="flex gap-2 pt-2">
                     <button type="button" onclick="closeAdminAuthModal()" class="w-1/2 py-2 bg-gray-800 hover:bg-gray-700 rounded text-xs font-bold text-gray-300 uppercase">
@@ -515,7 +518,7 @@
         <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-tekken-cardBorder pb-2">
                 <h3 id="modalTitle" class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider">Edycja Wyniku Meczu</h3>
-                <button onclick="closeMatchModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button type="button" onclick="closeMatchModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
             <div id="modalFormatInfo" class="text-xs text-tekken-gold font-bold uppercase text-center bg-tekken-bg py-1 border border-tekken-cardBorder rounded"></div>
@@ -615,14 +618,11 @@
         const TEKKEN_CHARACTERS = [
             "Akuma", "Alisa", "Anna", "Armor King", "Asuka", "Bob", "Bryan", "Claudio", 
             "Devil Jin", "Eddy", "Eliza", "Fahkumram", "Ganryu", "Gigas", "Heihachi", 
-            "Hwoarang", "Jack-7", "Jin", "Julia", "Kazuya", "King", "Kuni mitsu", "Lars", 
+            "Hwoarang", "Jack-7", "Jin", "Julia", "Kazuya", "King", "Kunimitsu", "Lars", 
             "Law", "Lee", "Lei", "Leo", "Leroy", "Lidia", "Lili", "Lucky Chloe", "Marduk", 
             "Master Raven", "Miguel", "Negan", "Nina", "Noctis", "Panda", "Paul", "Shaheen", 
             "Steve", "Vince", "Xiaoyu", "Yoshimitsu", "Zafina"
         ].sort();
-
-        // SHA-256 HASH FOR ORGANIZER PASSWORD ("Wroclaw2026@")
-        const ADMIN_PASS_HASH = "e7fd7ffb12c6a461b65b6f3c17a59dfce93f93ce082494957e1bb939c0fa43a5";
 
         // APP STATE OBJECT
         let tournament = {
@@ -660,6 +660,19 @@
             measurementId: "G-18VXJDJ93H"
         };
 
+        function normalizeTournamentData(data) {
+            if (!data) return;
+            if (!data.players) data.players = [];
+            if (!data.groups) data.groups = [];
+            if (!data.surveys) data.surveys = [];
+            if (!data.knockout) data.knockout = { rounds: [], thirdPlaceMatch: null };
+            if (!data.knockout.rounds) data.knockout.rounds = [];
+            if (!data.status) data.status = 'setup';
+            if (!data.groupCapacity) data.groupCapacity = 4;
+            if (!data.assignmentMode) data.assignmentMode = 'auto';
+            if (!data.tiebreaker) data.tiebreaker = 'diff';
+        }
+
         function initFirebase() {
             if (firebaseConfig.apiKey && firebaseConfig.databaseURL) {
                 try {
@@ -677,6 +690,7 @@
                     firebaseDb.ref('tournament_data').on('value', (snapshot) => {
                         const val = snapshot.val();
                         if (val) {
+                            normalizeTournamentData(val);
                             tournament = val;
                             renderApp();
                         }
@@ -685,14 +699,6 @@
                     console.warn("Firebase Init Warning:", e);
                 }
             }
-        }
-
-        // SHA-256 Hashing helper
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
         function showToast(message, type = 'info') {
@@ -770,13 +776,12 @@
             document.getElementById('adminAuthModal').classList.add('hidden');
         }
 
-        async function handleAdminLogin(e) {
+        function handleAdminLogin(e) {
             e.preventDefault();
             const u = document.getElementById('adminLoginUser').value.trim();
-            const p = document.getElementById('adminLoginPass').value;
-            const pHash = await sha256(p);
+            const p = document.getElementById('adminLoginPass').value.trim();
 
-            if (u === 'kuna230796' && pHash === ADMIN_PASS_HASH) {
+            if (u === 'kuna230796' && p === 'Wroclaw2026@') {
                 isAdminLoggedIn = true;
                 closeAdminAuthModal();
                 showToast("Zalogowano jako Administrator!", "success");
@@ -1386,8 +1391,12 @@
             try {
                 await initDatabase();
                 const dbData = await loadFromDB();
-                if (dbData) tournament = dbData;
-                else loadFromLocalStorage();
+                if (dbData) {
+                    normalizeTournamentData(dbData);
+                    tournament = dbData;
+                } else {
+                    loadFromLocalStorage();
+                }
             } catch (e) {
                 loadFromLocalStorage();
             }
@@ -1417,10 +1426,9 @@
             const saved = localStorage.getItem('tekken7_tournament');
             if (saved) {
                 try {
-                    tournament = JSON.parse(saved);
-                    if (!tournament.groupCapacity) tournament.groupCapacity = 4;
-                    if (!tournament.surveys) tournament.surveys = [];
-                    if (!tournament.status) tournament.status = 'setup';
+                    const parsed = JSON.parse(saved);
+                    normalizeTournamentData(parsed);
+                    tournament = parsed;
                 } catch(e) {}
             }
         }
@@ -1518,6 +1526,23 @@
             saveAndSync();
             renderSetup();
             showToast(`Zatwierdzono gracza: ${p.name}`, "success");
+        }
+
+        function approveAllPendingPlayers() {
+            let count = 0;
+            tournament.players.forEach(p => {
+                if (p.status === 'pending') {
+                    p.status = 'approved';
+                    count++;
+                }
+            });
+            if (count > 0) {
+                saveAndSync();
+                renderSetup();
+                showToast(`Zatwierdzono ${count} nowych graczy!`, "success");
+            } else {
+                showToast("Brak graczy do zatwierdzenia", "info");
+            }
         }
 
         function updatePlayerRank(idx, newRank) {
@@ -2700,7 +2725,9 @@
             const reader = new FileReader();
             reader.onload = function(evt) {
                 try {
-                    tournament = JSON.parse(evt.target.result);
+                    const parsed = JSON.parse(evt.target.result);
+                    normalizeTournamentData(parsed);
+                    tournament = parsed;
                     saveAndSync();
                     renderApp();
                     showToast("Zaimportowano turniej pomyślnie!", "success");
