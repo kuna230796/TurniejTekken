@@ -1,0 +1,3005 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIII Turniej w Tekken 7 - Tournament Manager Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        teko: ['Teko', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        tekken: {
+                            bg: '#08080c',
+                            card: '#12131e',
+                            cardBorder: '#23253b',
+                            red: '#ff1e4b',
+                            gold: '#ffb703',
+                            silver: '#e2e8f0',
+                            bronze: '#cd7f32',
+                            cyan: '#00f0ff',
+                            darkBlue: '#16192b'
+                        }
+                    },
+                    boxShadow: {
+                        'neon-red': '0 0 15px rgba(255, 30, 75, 0.4)',
+                        'neon-gold': '0 0 15px rgba(255, 183, 3, 0.4)',
+                        'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #08080c;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(255, 30, 75, 0.12), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 240, 255, 0.08), transparent 50%);
+            background-attachment: fixed;
+            color: #e2e8f0;
+        }
+
+        .skew-tag { transform: skewX(-12deg); }
+        .unskew { transform: skewX(12deg); }
+
+        .tekken-btn-red {
+            background: linear-gradient(135deg, #ff1e4b 0%, #b30024 100%);
+            border: 1px solid #ff5c7c;
+            box-shadow: 0 0 10px rgba(255, 30, 75, 0.3);
+            transition: all 0.2s ease;
+        }
+        .tekken-btn-red:hover { box-shadow: 0 0 20px rgba(255, 30, 75, 0.6); filter: brightness(1.1); }
+
+        .tekken-btn-gold {
+            background: linear-gradient(135deg, #ffb703 0%, #d48800 100%);
+            border: 1px solid #ffd056;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 183, 3, 0.3);
+            transition: all 0.2s ease;
+        }
+        .tekken-btn-gold:hover { box-shadow: 0 0 20px rgba(255, 183, 3, 0.6); filter: brightness(1.1); }
+
+        .led-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px currentColor;
+        }
+        .led-red { background-color: #ef4444; color: #ef4444; }
+        .led-orange { background-color: #f97316; color: #f97316; }
+        .led-green { background-color: #22c55e; color: #22c55e; }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0d0e15; }
+        ::-webkit-scrollbar-thumb { background: #262942; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff1e4b; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-tekken-red selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-tekken-cardBorder bg-tekken-bg/95 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <!-- Logo & Info -->
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 skew-tag bg-tekken-red flex items-center justify-center font-teko text-2xl font-bold text-white shadow-neon-red">
+                    <span class="unskew">XIII</span>
+                </div>
+                <div>
+                    <h1 class="font-teko text-3xl uppercase tracking-wider leading-none text-white drop-shadow">
+                        XIII Turniej <span class="text-tekken-red">w Tekken 7</span>
+                    </h1>
+                    <div class="flex flex-col sm:flex-row sm:gap-3 text-xs text-gray-400 font-rajdhani font-semibold">
+                        <span class="text-tekken-gold">by Michał „Majsik” Długaszewski</span>
+                        <span class="hidden sm:inline text-gray-600">•</span>
+                        <span class="text-tekken-cyan">Pub Salonik 28.11.2026r.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role View Switcher & Actions -->
+            <div class="flex items-center gap-3">
+                <div class="flex items-center bg-tekken-card p-1 rounded-lg border border-tekken-cardBorder">
+                    <button onclick="setAppRole('player')" id="btn-role-player" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red flex items-center gap-1.5">
+                        <i data-lucide="gamepad-2" class="w-4 h-4"></i> Portal Gracza
+                    </button>
+                    <button onclick="setAppRole('organizer')" id="btn-role-org" class="px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white flex items-center gap-1.5">
+                        <i data-lucide="shield" class="w-4 h-4"></i> Panel Organizatora
+                    </button>
+                </div>
+
+                <!-- Player Header Info -->
+                <div id="playerAuthHeaderInfo" class="hidden flex items-center gap-2">
+                    <span id="loggedPlayerNickname" class="text-xs font-bold font-rajdhani text-tekken-cyan bg-tekken-darkBlue px-2.5 py-1.5 rounded border border-tekken-cardBorder">
+                        Niezalogowany
+                    </span>
+                    <button onclick="logoutPlayer()" class="p-1.5 bg-red-950 text-red-400 hover:text-white border border-red-800 rounded" title="Wyloguj">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Admin Header Actions (Live Display, Data Export/Import/Reset, Logout) -->
+                <div id="adminHeaderActions" class="hidden flex items-center gap-2">
+                    <button onclick="openLiveWindow()" class="px-3 py-1.5 skew-tag bg-tekken-gold hover:bg-yellow-400 text-black font-rajdhani font-bold text-xs flex items-center gap-1.5 shadow-neon-gold transition">
+                        <span class="unskew flex items-center gap-1.5">
+                            <i data-lucide="external-link" class="w-4 h-4"></i>
+                            <span>Ekran na Żywo (2. Monitor)</span>
+                        </span>
+                    </button>
+
+                    <!-- Data Actions Dropdown Menu -->
+                    <div class="relative">
+                        <button onclick="toggleActionMenu(event)" class="p-2 bg-tekken-card border border-tekken-cardBorder rounded text-gray-300 hover:text-white focus:outline-none focus:border-tekken-red" title="Opcje Danych i Zapisów">
+                            <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                        </button>
+                        <div id="actionDropdownMenu" class="absolute right-0 mt-2 w-64 bg-tekken-card border border-tekken-cardBorder rounded-lg shadow-2xl py-1 hidden z-50">
+                            <button onclick="exportToCSV()" class="w-full text-left px-4 py-2.5 text-sm text-tekken-cyan hover:bg-tekken-cardBorder flex items-center gap-2 font-semibold transition">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Eksportuj do CSV (Excel)
+                            </button>
+                            <hr class="border-tekken-cardBorder my-1">
+                            <button onclick="exportData()" class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-tekken-cardBorder flex items-center gap-2 transition">
+                                <i data-lucide="download" class="w-4 h-4"></i> Eksportuj JSON (Kopia)
+                            </button>
+                            <label class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-tekken-cardBorder flex items-center gap-2 cursor-pointer transition">
+                                <i data-lucide="upload" class="w-4 h-4"></i> Importuj JSON
+                                <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importData(event)">
+                            </label>
+                            <hr class="border-tekken-cardBorder my-1">
+                            <button onclick="openResetModal()" class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-950 flex items-center gap-2 transition">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i> Reset Turnieju (Usuń Wszystko)
+                            </button>
+                        </div>
+                    </div>
+
+                    <button onclick="logoutAdmin()" class="p-1.5 bg-red-950 text-red-400 hover:text-white border border-red-800 rounded" title="Wyloguj Admina">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Buttons (Organizer View Only) -->
+        <nav id="navTabsOrg" class="hidden max-w-7xl mx-auto px-4 pb-2 flex items-center space-x-2 border-t border-tekken-cardBorder/40 pt-2">
+            <button onclick="switchTab('setup')" id="tab-setup" class="px-3 py-1.5 rounded text-sm font-rajdhani font-semibold flex items-center gap-2 transition-all text-white bg-tekken-red">
+                <i data-lucide="users" class="w-4 h-4"></i>
+                <span>Rejestracja i Konfiguracja</span>
+            </button>
+            <button onclick="switchTab('groups')" id="tab-groups" class="px-3 py-1.5 rounded text-sm font-rajdhani font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-white">
+                <i data-lucide="grid" class="w-4 h-4"></i>
+                <span>Faza Grupowa</span>
+            </button>
+            <button onclick="switchTab('knockout')" id="tab-knockout" class="px-3 py-1.5 rounded text-sm font-rajdhani font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-white">
+                <i data-lucide="trophy" class="w-4 h-4"></i>
+                <span>Faza Pucharowa</span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- MAIN ORGANIZER VIEW -->
+    <main id="mainOrganizerArea" class="hidden flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- TAB 1: SETUP & PLAYERS APPROVAL -->
+        <section id="sec-setup" class="space-y-6">
+            <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-6 shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="font-teko text-3xl text-white tracking-wide uppercase">Rejestracja i Konfiguracja Turnieju</h2>
+                        <p class="text-sm text-gray-400">Zatwierdzaj zgłoszenia graczy, modyfikuj mecze, wybieraj wielkość grup i zasady.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <div class="flex items-center gap-2 bg-tekken-bg border border-tekken-cardBorder p-1.5 rounded-lg">
+                            <label class="text-xs font-rajdhani font-bold text-gray-400 uppercase">Max w grupie:</label>
+                            <select id="groupCapacitySelect" onchange="setGroupCapacity(this.value)" class="bg-tekken-card font-bold text-tekken-gold border border-tekken-cardBorder rounded px-2 py-1 text-sm focus:outline-none">
+                                <option value="4" selected>4 graczy</option>
+                                <option value="5">5 graczy</option>
+                                <option value="6">6 graczy</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 bg-tekken-bg border border-tekken-cardBorder p-1.5 rounded-lg">
+                            <input type="number" id="quickCount" value="8" min="2" max="64" class="w-14 bg-transparent text-center font-bold text-white border-b border-gray-600 focus:outline-none focus:border-tekken-cyan">
+                            <button onclick="generateQuickPlayers()" class="px-3 py-1 bg-tekken-darkBlue border border-tekken-cyan text-tekken-cyan hover:bg-tekken-cyan hover:text-black font-rajdhani font-bold text-xs uppercase rounded transition">
+                                Szybka Lista
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Controls -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-tekken-bg border border-tekken-cardBorder p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="sliders" class="w-5 h-5 text-tekken-gold"></i>
+                            <div>
+                                <span class="font-rajdhani font-bold text-white uppercase text-sm block">Tryb Przydziału do Grup</span>
+                                <span class="text-xs text-gray-400">Automatyczny koszykowy lub ręczny wybór A, B, C...</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-tekken-card p-1 rounded-lg border border-tekken-cardBorder">
+                            <button onclick="setAssignmentMode('auto')" id="btn-mode-auto" class="px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red">
+                                Automatyczny
+                            </button>
+                            <button onclick="setAssignmentMode('manual')" id="btn-mode-manual" class="px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white">
+                                Ręczny
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-tekken-bg border border-tekken-cardBorder p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="scale" class="w-5 h-5 text-tekken-cyan"></i>
+                            <div>
+                                <span class="font-rajdhani font-bold text-white uppercase text-sm block">Kryterium Remisu</span>
+                                <span class="text-xs text-gray-400">Wygrana = 3 PKT | Porażka = 0 PKT</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-tekken-card p-1 rounded-lg border border-tekken-cardBorder">
+                            <button onclick="setTiebreaker('diff')" id="btn-tie-diff" class="px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red">
+                                Bilans (+/-)
+                            </button>
+                            <button onclick="setTiebreaker('h2h')" id="btn-tie-h2h" class="px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white">
+                                Bezpośrednie
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SURVEY ANALYTICS DASHBOARD IN ORGANIZER PANEL -->
+                <div class="bg-tekken-darkBlue/80 border border-tekken-cyan/40 rounded-xl p-4 mb-6 space-y-3">
+                    <h3 class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Wyniki Anonimowych Ankiet Uczestników
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div class="bg-tekken-card p-3 rounded-lg border border-tekken-cardBorder">
+                            <span class="text-xs text-gray-400 uppercase font-bold block">Średnia Ocena Organizacji</span>
+                            <span id="avgOrgRatingText" class="font-teko text-3xl text-tekken-gold font-bold">0.0 / 10</span>
+                        </div>
+                        <div class="bg-tekken-card p-3 rounded-lg border border-tekken-cardBorder">
+                            <span class="text-xs text-gray-400 uppercase font-bold block">Średnia Ocena Aplikacji</span>
+                            <span id="avgAppRatingText" class="font-teko text-3xl text-tekken-cyan font-bold">0.0 / 10</span>
+                        </div>
+                        <div class="bg-tekken-card p-3 rounded-lg border border-tekken-cardBorder">
+                            <span class="text-xs text-gray-400 uppercase font-bold block">Łącznie Oddanych Głosów</span>
+                            <span id="totalSurveyVotesText" class="font-teko text-3xl text-white font-bold">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PENDING PLAYERS APPROVAL SECTION -->
+                <div class="bg-tekken-darkBlue/60 border border-tekken-gold/30 rounded-xl p-4 mb-6">
+                    <h3 class="font-teko text-2xl text-tekken-gold uppercase tracking-wider flex items-center gap-2 mb-2">
+                        <i data-lucide="user-check" class="w-5 h-5"></i> Oczekujący Gracze na Zatwierdzenie (<span id="pendingCount">0</span>)
+                    </h3>
+                    <p class="text-xs text-gray-400 mb-4">Uczestnicy zarejestrowani przez Portal Gracza. Zatwierdź ich i opcjonalnie przypisz rangę lub grupę.</p>
+
+                    <div id="pendingPlayersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div class="col-span-full text-center py-4 text-gray-500 font-rajdhani">Brak nowych zgłoszeń graczy.</div>
+                    </div>
+                </div>
+
+                <!-- MANUAL REGISTRATION BY ORGANIZER -->
+                <div class="bg-tekken-bg border border-tekken-cardBorder p-4 rounded-xl mb-6">
+                    <form id="manualAddForm" onsubmit="addPlayerManually(event)" class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="playerNameInput" placeholder="Nazwa gracza / Nick (np. Arslan_Ash)" required autocomplete="off" class="flex-grow bg-tekken-card border border-tekken-cardBorder rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-tekken-red">
+                        
+                        <div class="flex items-center gap-2 bg-tekken-card border border-tekken-cardBorder rounded-lg px-3 py-1">
+                            <label for="playerRankInput" class="text-xs font-rajdhani font-bold text-gray-400 uppercase whitespace-nowrap">Ranking (0=DEBIUT):</label>
+                            <input type="number" id="playerRankInput" min="0" max="999" value="0" class="w-16 bg-transparent text-center font-bold text-tekken-gold border-b border-gray-600 focus:outline-none focus:border-tekken-gold">
+                        </div>
+
+                        <div id="manualGroupSelectContainer" class="hidden flex items-center gap-2">
+                            <label class="text-xs font-rajdhani font-bold text-gray-400 uppercase">Grupa:</label>
+                            <select id="playerGroupSelect" class="bg-tekken-card border border-tekken-cardBorder rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-tekken-red font-rajdhani font-bold">
+                            </select>
+                        </div>
+
+                        <button type="submit" class="tekken-btn-red px-6 py-2.5 rounded-lg font-rajdhani font-bold uppercase tracking-wider text-white flex items-center justify-center gap-2">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i> Dodaj Gracza
+                        </button>
+                    </form>
+                </div>
+
+                <!-- APPROVED PLAYERS LIST WITH EDIT OPTIONS -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center text-sm font-rajdhani font-semibold text-gray-400">
+                        <span>ZATWIERDZENI GRACZE (<span id="playersCount" class="text-tekken-cyan font-bold">0</span>)</span>
+                        <span class="text-xs">Liczba grup: <span id="calcGroupsCount" class="text-tekken-gold font-bold">0</span></span>
+                    </div>
+
+                    <div id="playersList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto p-1">
+                    </div>
+                </div>
+
+                <!-- Confirm & Start Groups -->
+                <div class="mt-8 pt-6 border-t border-tekken-cardBorder flex justify-end">
+                    <button onclick="confirmAndGenerateGroups()" class="tekken-btn-gold px-8 py-3 rounded-lg font-teko text-2xl uppercase tracking-wider flex items-center gap-2 shadow-neon-gold">
+                        <i data-lucide="play" class="w-6 h-6 fill-black"></i> Zatwierdź Grupy i Rozpocznij Fazę Grupową
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: GROUPS STAGE -->
+        <section id="sec-groups" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-tekken-card p-4 rounded-xl border border-tekken-cardBorder">
+                <div>
+                    <h2 class="font-teko text-3xl text-white tracking-wide uppercase">Faza Grupowa (FT4)</h2>
+                    <p class="text-xs text-gray-400">Mecze są rozgrywane kolejka po kolejce we wszystkich grupach. Top 2 z każdej grupy awansuje do Fazy Pucharowej.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="simulateGroupScores()" class="px-4 py-2 bg-tekken-darkBlue border border-tekken-cyan text-tekken-cyan hover:bg-tekken-cyan hover:text-black font-rajdhani text-sm font-bold uppercase rounded transition">
+                        ⚡ Symuluj Wyniki Grup
+                    </button>
+                    <button onclick="advanceToKnockout()" class="tekken-btn-red px-6 py-2.5 rounded-lg font-teko text-xl uppercase tracking-wider flex items-center gap-2 shadow-neon-red">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i> Zatwierdź i Generuj Drabinkę Pucharową
+                    </button>
+                </div>
+            </div>
+
+            <div id="groupsContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            </div>
+        </section>
+
+        <!-- TAB 3: KNOCKOUT STAGE -->
+        <section id="sec-knockout" class="hidden space-y-6">
+            <div class="bg-tekken-card p-4 rounded-xl border border-tekken-cardBorder flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="font-teko text-3xl text-white tracking-wide uppercase">Faza Pucharowa (Knockout Bracket)</h2>
+                    <p class="text-xs text-gray-400">
+                        Mecze do 1/4 finału: <span class="text-tekken-cyan font-bold">1 mecz FT4</span> | 
+                        Półfinał: <span class="text-tekken-gold font-bold">Seria BO3</span> | 
+                        Mecz o 3. msc & Finał: <span class="text-tekken-red font-bold">Seria BO5</span>. Mecz o 3. miejsce jest przed Finałem.
+                    </p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="renderKnockout()" class="px-4 py-2 bg-tekken-darkBlue border border-tekken-cardBorder text-gray-300 hover:text-white rounded font-rajdhani text-sm font-semibold flex items-center gap-1.5">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Odśwież Drabinkę
+                    </button>
+                </div>
+            </div>
+
+            <div id="bracketTreeContainer" class="relative overflow-x-auto pb-6">
+                <div id="bracketTree" class="relative z-10 min-w-[800px] flex gap-8 items-stretch py-4">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ADMIN LOGIN MODAL (TRIGGERED FROM TOP HEADER BUTTON OR DIRECT) -->
+    <div id="adminAuthModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-tekken-card border border-tekken-red rounded-xl p-6 max-w-md w-full shadow-neon-red space-y-4">
+            <div class="text-center">
+                <h3 class="font-teko text-3xl text-white uppercase tracking-wider">Logowanie Organizatora</h3>
+                <p class="text-xs text-gray-400">Zaloguj się kontem admina, aby uzyskać pełny dostęp do zarządzania.</p>
+            </div>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4 font-rajdhani" autocomplete="off">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Login Admina:</label>
+                    <input type="text" id="adminLoginUserModal" name="admin_username_nocache" required autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-red">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Hasło:</label>
+                    <input type="password" id="adminLoginPassModal" name="admin_password_nocache" required autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-red">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeAdminAuthModal()" class="w-1/2 py-2.5 rounded bg-tekken-cardBorder hover:bg-gray-700 text-white font-bold uppercase text-sm">
+                        Anuluj
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded tekken-btn-red text-white font-bold uppercase text-sm">
+                        Zaloguj Admina
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN PLAYER PORTAL (DEFAULT LOADED VIEW) -->
+    <main id="mainPlayerArea" class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+        <!-- AUTH SECTION FOR PLAYERS -->
+        <div id="playerAuthSection" class="bg-tekken-card border border-tekken-red rounded-xl p-6 shadow-neon-red max-w-md mx-auto space-y-6">
+            <div class="text-center">
+                <h2 class="font-teko text-4xl text-white uppercase tracking-wider">Portal Gracza</h2>
+                <p class="text-xs text-gray-400">Zaloguj się kontem gracza lub zarejestruj swój udział w turnieju.</p>
+            </div>
+
+            <!-- 2 TABS IN AUTH CARD: LOGIN & REGISTER -->
+            <div class="flex border-b border-tekken-cardBorder text-center font-rajdhani font-bold text-xs uppercase">
+                <button onclick="setAuthTab('login')" id="btn-auth-login" class="w-1/2 py-2.5 text-tekken-red border-b-2 border-tekken-red font-bold">
+                    Zaloguj się
+                </button>
+                <button onclick="setAuthTab('register')" id="btn-auth-reg" class="w-1/2 py-2.5 text-gray-400 hover:text-white">
+                    Zarejestruj się
+                </button>
+            </div>
+
+            <!-- Login Form (Player) -->
+            <form id="formLogin" onsubmit="handlePlayerLogin(event)" class="space-y-4 font-rajdhani">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Login Gracza:</label>
+                    <input type="text" id="loginUsername" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-red">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Hasło:</label>
+                    <input type="password" id="loginPassword" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-red">
+                </div>
+                <button type="submit" class="w-full py-2.5 tekken-btn-red rounded font-bold uppercase tracking-wider text-white">
+                    Zaloguj do Turnieju
+                </button>
+            </form>
+
+            <!-- Register Form (Player) -->
+            <form id="formRegister" onsubmit="handlePlayerRegister(event)" class="hidden space-y-4 font-rajdhani">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Login (Do Logowania):</label>
+                    <input type="text" id="regLogin" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-cyan">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Nazwa Gracza / Nick (Wyświetlany na Turnieju):</label>
+                    <input type="text" id="regName" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-cyan">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Hasło:</label>
+                    <input type="password" id="regPassword" required autocomplete="off" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-cyan">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-300 mb-1">Czy pierwszy raz bierzesz udział w turnieju?</label>
+                    <select id="regFirstTime" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-white focus:outline-none focus:border-tekken-cyan font-bold">
+                        <option value="yes" selected>Tak</option>
+                        <option value="no">Nie</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-2.5 tekken-btn-gold rounded font-bold uppercase tracking-wider text-black">
+                    Zarejestruj Konto Gracza
+                </button>
+            </form>
+        </div>
+
+        <!-- DASHBOARD FOR LOGGED-IN PLAYER -->
+        <div id="playerDashboardSection" class="hidden space-y-6">
+            <div id="playerPendingNotice" class="hidden bg-yellow-950/80 border border-yellow-500/50 rounded-xl p-5 text-center space-y-2">
+                <i data-lucide="clock" class="w-8 h-8 text-yellow-400 mx-auto"></i>
+                <h3 class="font-teko text-2xl text-yellow-300 uppercase">Oczekujesz na Zatwierdzenie</h3>
+                <p class="text-xs text-gray-300">Twoje konto zostało utworzone. Organizator zatwierdzi Twój udział wkrótce.</p>
+            </div>
+
+            <!-- ELIMINATED / FINISHED CARD HEADER -->
+            <div id="playerEliminatedSection" class="hidden bg-tekken-card border border-tekken-gold/60 rounded-xl p-6 shadow-neon-gold text-center space-y-3">
+                <div id="playerCongratulationsHeader" class="space-y-1">
+                </div>
+                <div class="text-sm font-rajdhani text-gray-300 font-semibold border-t border-b border-tekken-cardBorder py-3">
+                    Dziękujemy za udział w turnieju, zapraszamy za rok!
+                </div>
+            </div>
+
+            <div id="playerActiveDashboard" class="space-y-6">
+                <!-- Upcoming Matches Card -->
+                <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
+                    <h3 class="font-teko text-3xl text-white uppercase tracking-wider flex items-center justify-between">
+                        <span>Twoje Nadchodzące / Rozgrywane Mecze</span>
+                        <span class="text-xs font-rajdhani text-tekken-cyan" id="playerGroupNameHeader"></span>
+                    </h3>
+
+                    <div id="playerMatchesList" class="space-y-3">
+                        <!-- Dynamic list of matches for logged player -->
+                    </div>
+                </div>
+
+                <!-- My Group Table -->
+                <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
+                    <h3 class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider">Tabela Twojej Grupy</h3>
+                    <div id="playerGroupTableContainer"></div>
+                </div>
+            </div>
+
+            <!-- ANONYMOUS SURVEY CARD (ALWAYS ACCESSIBLE TO LOGGED PLAYERS IN DASHBOARD) -->
+            <div id="surveyContainer" class="bg-tekken-card border border-tekken-cyan/50 rounded-xl p-6 shadow-neon-cyan space-y-4">
+                <div class="flex items-center gap-3 border-b border-tekken-cardBorder pb-3">
+                    <i data-lucide="message-square-heart" class="w-6 h-6 text-tekken-cyan"></i>
+                    <div>
+                        <h4 class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider leading-none">Anonimowa Ankieta Uczestnika</h4>
+                        <p class="text-xs text-gray-400 font-rajdhani">Podziel się swoją opinią o organizacji i aplikacji.</p>
+                    </div>
+                </div>
+
+                <form id="surveyForm" onsubmit="submitPlayerSurvey(event)" class="space-y-4 font-rajdhani">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-white mb-1">1. Jak oceniasz organizację turnieju? (1-10)</label>
+                        <div class="flex items-center gap-3 bg-tekken-bg p-3 rounded-lg border border-tekken-cardBorder">
+                            <input type="range" id="surveyRatingOrg" min="1" max="10" value="10" oninput="document.getElementById('valOrg').textContent = this.value" class="w-full accent-tekken-gold">
+                            <span id="valOrg" class="font-teko text-3xl text-tekken-gold font-bold w-10 text-center">10</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-white mb-1">2. Jak oceniasz działanie aplikacji? (1-10)</label>
+                        <div class="flex items-center gap-3 bg-tekken-bg p-3 rounded-lg border border-tekken-cardBorder">
+                            <input type="range" id="surveyRatingApp" min="1" max="10" value="10" oninput="document.getElementById('valApp').textContent = this.value" class="w-full accent-tekken-cyan">
+                            <span id="valApp" class="font-teko text-3xl text-tekken-cyan font-bold w-10 text-center">10</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 tekken-btn-gold rounded-lg font-bold uppercase text-black text-sm tracking-wider shadow-neon-gold">
+                        Wyślij Anonimową Ankietę
+                    </button>
+                </form>
+
+                <div id="surveyThanksMsg" class="hidden text-center py-4 text-emerald-400 font-rajdhani font-bold text-sm uppercase bg-tekken-darkBlue rounded-lg border border-emerald-500/40">
+                    <i data-lucide="check-circle-2" class="w-6 h-6 mx-auto mb-1 text-emerald-400"></i>
+                    Dziękujemy za oddanie głosu w anonimowej ankiecie!
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Match Result Modal (Organizer Manual Edit / Review) -->
+    <div id="matchModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-tekken-card border border-tekken-red rounded-xl p-6 max-w-md w-full shadow-neon-red max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b border-tekken-cardBorder pb-2">
+                <h3 id="modalTitle" class="font-teko text-2xl text-white uppercase tracking-wide">Panel Wyniku Meczu</h3>
+                <button onclick="closeMatchModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div id="modalFormatInfo" class="text-xs font-rajdhani text-tekken-gold font-bold uppercase text-center bg-tekken-darkBlue p-2 rounded border border-tekken-cardBorder">
+                    FORMAT: SINGLE MATCH (FT4)
+                </div>
+
+                <!-- Submissions Review Box -->
+                <div id="modalSubmissionsStatusBox" class="bg-tekken-bg border border-tekken-cardBorder p-3 rounded text-xs font-rajdhani space-y-1">
+                    <div class="font-bold uppercase text-gray-300 border-b border-tekken-cardBorder pb-1 mb-1">Status Zgłoszeń Graczy:</div>
+                    <div id="modalP1SubText" class="text-gray-400">P1: Brak zgłoszenia</div>
+                    <div id="modalP2SubText" class="text-gray-400">P2: Brak zgłoszenia</div>
+                </div>
+
+                <!-- Single Match Score Form -->
+                <div id="singleMatchContainer" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4 items-center">
+                        <div class="text-center p-3 bg-tekken-bg rounded-lg border border-tekken-cardBorder">
+                            <div id="modalP1Name" class="font-rajdhani font-bold text-white text-lg truncate mb-2">Gracz 1</div>
+                            <input type="number" id="modalP1Score" min="0" max="4" value="0" class="w-20 text-center font-teko text-4xl bg-tekken-darkBlue border border-tekken-red rounded text-white focus:outline-none mx-auto block">
+                        </div>
+
+                        <div class="text-center p-3 bg-tekken-bg rounded-lg border border-tekken-cardBorder">
+                            <div id="modalP2Name" class="font-rajdhani font-bold text-white text-lg truncate mb-2">Gracz 2</div>
+                            <input type="number" id="modalP2Score" min="0" max="4" value="0" class="w-20 text-center font-teko text-4xl bg-tekken-darkBlue border border-tekken-cyan rounded text-white focus:outline-none mx-auto block">
+                        </div>
+                    </div>
+
+                    <!-- Character selection for single match -->
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-tekken-cardBorder">
+                        <div>
+                            <label class="block text-[11px] font-rajdhani font-bold text-tekken-red uppercase mb-1">Postać P1 (Jednorazowa):</label>
+                            <select id="modalP1Char" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-tekken-red font-rajdhani">
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-rajdhani font-bold text-tekken-cyan uppercase mb-1">Postać P2 (Jednorazowa):</label>
+                            <select id="modalP2Char" class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-tekken-cyan font-rajdhani">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Series Matches Input (Semis, Finals, 3rd Place) -->
+                <div id="seriesMatchesContainer" class="hidden space-y-3">
+                    <div class="flex justify-between items-center text-sm font-rajdhani font-bold text-white bg-tekken-darkBlue p-2 rounded border border-tekken-cardBorder">
+                        <span id="seriesP1Name" class="text-tekken-red">Gracz 1</span>
+                        <span class="text-tekken-gold text-xs">SERIA (<span id="seriesScoreP1">0</span> : <span id="seriesScoreP2">0</span>)</span>
+                        <span id="seriesP2Name" class="text-tekken-cyan">Gracz 2</span>
+                    </div>
+
+                    <div id="seriesGamesList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-tekken-cardBorder">
+                    <button onclick="closeMatchModal()" class="w-1/2 py-2.5 rounded bg-tekken-cardBorder hover:bg-gray-700 font-rajdhani font-bold text-white uppercase text-sm">
+                        Anuluj
+                    </button>
+                    <button onclick="saveMatchScore()" class="w-1/2 py-2.5 rounded tekken-btn-red font-rajdhani font-bold text-white uppercase text-sm">
+                        Zatwierdź Wynik
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLAYER SCORE SUBMISSION MODAL -->
+    <div id="playerSubmitModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-tekken-card border border-tekken-cyan rounded-xl p-6 max-w-md w-full shadow-neon-cyan">
+            <div class="flex justify-between items-center mb-4 border-b border-tekken-cardBorder pb-2">
+                <h3 class="font-teko text-2xl text-white uppercase tracking-wide">Wprowadź Wynik Swojego Meczu</h3>
+                <button onclick="closePlayerSubmitModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+
+            <form onsubmit="submitPlayerMatchResult(event)" class="space-y-4 font-rajdhani">
+                <div class="text-center font-bold text-tekken-gold text-sm uppercase bg-tekken-darkBlue p-2 rounded border border-tekken-cardBorder">
+                    <span id="pModalMatchTitle">Mecz #</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 items-center">
+                    <div class="text-center p-3 bg-tekken-bg rounded-lg border border-tekken-cardBorder">
+                        <div id="pModalMyName" class="font-bold text-tekken-red text-base truncate mb-1">Ty</div>
+                        <label class="block text-[10px] text-gray-400 uppercase mb-1">Twoje wygrane rundy:</label>
+                        <input type="number" id="pModalMyScore" min="0" max="4" value="0" required class="w-20 text-center font-teko text-4xl bg-tekken-darkBlue border border-tekken-red rounded text-white focus:outline-none mx-auto block">
+                    </div>
+
+                    <div class="text-center p-3 bg-tekken-bg rounded-lg border border-tekken-cardBorder">
+                        <div id="pModalOpponentName" class="font-bold text-tekken-cyan text-base truncate mb-1">Przeciwnik</div>
+                        <label class="block text-[10px] text-gray-400 uppercase mb-1">Rundy przeciwnika:</label>
+                        <input type="number" id="pModalOpponentScore" min="0" max="4" value="0" required class="w-20 text-center font-teko text-4xl bg-tekken-darkBlue border border-tekken-cyan rounded text-white focus:outline-none mx-auto block">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Postać jakną grałeś(aś):</label>
+                    <select id="pModalMyChar" required class="w-full bg-tekken-bg border border-tekken-cardBorder rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-tekken-cyan">
+                    </select>
+                    <p class="text-[10px] text-gray-500 mt-1">* Każdą postacią możesz zagrać tylko raz w całym turnieju!</p>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closePlayerSubmitModal()" class="w-1/2 py-2.5 rounded bg-tekken-cardBorder hover:bg-gray-700 font-bold text-white uppercase text-sm">
+                        Anuluj
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded tekken-btn-gold font-bold text-black uppercase text-sm">
+                        Wyślij Wynik
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RESET TOURNAMENT CONFIRMATION MODAL -->
+    <div id="resetConfirmModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-tekken-card border border-red-600 rounded-xl p-6 max-w-md w-full shadow-neon-red space-y-4">
+            <div class="text-center space-y-2">
+                <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mx-auto animate-bounce"></i>
+                <h3 class="font-teko text-3xl text-white uppercase tracking-wider">Potwierdzenie Resetu Turnieju</h3>
+                <p class="text-xs text-gray-300 font-rajdhani">
+                    Czy na pewno chcesz zresetować cały turniej? <span class="text-red-400 font-bold block mt-1">Wszystkie utworzone konta graczy, mecze i anonimowe ankiety zostaną bezpowrotnie usunięte!</span>
+                </p>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeResetModal()" class="w-1/2 py-2.5 rounded bg-tekken-cardBorder hover:bg-gray-700 text-white font-rajdhani font-bold uppercase text-sm">
+                    Anuluj
+                </button>
+                <button type="button" onclick="executeResetTournament()" class="w-1/2 py-2.5 rounded bg-red-600 hover:bg-red-500 text-white font-rajdhani font-bold uppercase text-sm shadow-neon-red">
+                    Tak, Usuń Wszystko
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // Toast Notifications
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-2.5 rounded-lg shadow-xl text-sm font-rajdhani font-bold uppercase tracking-wider border text-white pointer-events-auto transition-all transform translate-y-2 opacity-0 flex items-center gap-2 ${
+                type === 'error' ? 'bg-red-900 border-red-500' : 
+                type === 'success' ? 'bg-emerald-900 border-emerald-500' : 'bg-tekken-darkBlue border-tekken-cyan'
+            }`;
+            toast.innerHTML = `<i data-lucide="${type === 'error' ? 'alert-triangle' : 'check-circle'}" class="w-4 h-4"></i> ${msg}`;
+            container.appendChild(toast);
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        const TEKKEN_CHARACTERS = [
+            "Akuma", "Alisa", "Anna", "Armor King", "Asuka", "Bob", "Bryan", "Claudio", 
+            "Devil Jin", "Eddy", "Eliza", "Fahkumram", "Ganryu", "Geese", "Gigas", "Heihachi", 
+            "Hwoarang", "Jack-7", "Jin", "Julia", "Kazuya", "King", "Kuma", "Kunimitsu", 
+            "Lars", "Law", "Lee", "Lei", "Leo", "Lidia", "Lili", "Lucky Chloe", "Marduk", 
+            "Master Raven", "Miguel", "Negan", "Nina", "Noctis", "Panda", "Paul", "Shaheen", 
+            "Steve", "Xiaoyu", "Yoshimitsu", "Zafina"
+        ];
+
+        let tournament = {
+            players: [],
+            assignmentMode: 'auto',
+            groupCapacity: 4,
+            tiebreaker: 'diff',
+            groups: [],
+            knockout: { rounds: [], thirdPlaceMatch: null },
+            surveys: [],
+            status: 'setup'
+        };
+
+        let isAdminLoggedIn = false;
+        let appRole = 'player';
+        let loggedPlayer = null;
+        let currentActiveMatch = null;
+        let playerSubmitMatchTarget = null;
+
+        const bc = new BroadcastChannel('tekken_tournament_channel');
+
+        function toggleActionMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('actionDropdownMenu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('actionDropdownMenu');
+            if (menu && !menu.classList.contains('hidden')) {
+                if (!e.target.closest('.relative')) {
+                    menu.classList.add('hidden');
+                }
+            }
+        });
+
+        function setAppRole(role) {
+            if (role === 'organizer' && !isAdminLoggedIn) {
+                openAdminAuthModal();
+                return;
+            }
+
+            appRole = role;
+            const btnOrg = document.getElementById('btn-role-org');
+            const btnPlayer = document.getElementById('btn-role-player');
+            const mainOrg = document.getElementById('mainOrganizerArea');
+            const mainPlayer = document.getElementById('mainPlayerArea');
+            const navTabsOrg = document.getElementById('navTabsOrg');
+            const adminActions = document.getElementById('adminHeaderActions');
+            const playerAuthInfo = document.getElementById('playerAuthHeaderInfo');
+
+            if (role === 'organizer') {
+                btnOrg.className = "px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red flex items-center gap-1.5";
+                btnPlayer.className = "px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white flex items-center gap-1.5";
+                mainOrg.classList.remove('hidden');
+                mainPlayer.classList.add('hidden');
+                navTabsOrg.classList.remove('hidden');
+                adminActions.classList.remove('hidden');
+                playerAuthInfo.classList.add('hidden');
+                renderSurveyAnalytics();
+            } else {
+                btnPlayer.className = "px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red flex items-center gap-1.5";
+                btnOrg.className = "px-3 py-1.5 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white flex items-center gap-1.5";
+                mainOrg.classList.add('hidden');
+                mainPlayer.classList.remove('hidden');
+                navTabsOrg.classList.add('hidden');
+                adminActions.classList.add('hidden');
+                playerAuthInfo.classList.remove('hidden');
+                renderPlayerPanel();
+            }
+        }
+
+        function openAdminAuthModal() {
+            const uInput = document.getElementById('adminLoginUserModal');
+            const pInput = document.getElementById('adminLoginPassModal');
+            if (uInput) {
+                uInput.value = '';
+                uInput.setAttribute('readonly', 'readonly');
+            }
+            if (pInput) {
+                pInput.value = '';
+                pInput.setAttribute('readonly', 'readonly');
+            }
+            document.getElementById('adminAuthModal').classList.remove('hidden');
+        }
+
+        function closeAdminAuthModal() {
+            document.getElementById('adminAuthModal').classList.add('hidden');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('adminLoginUserModal').value.trim();
+            const p = document.getElementById('adminLoginPassModal').value;
+
+            if (u === 'kuna230796' && p === 'Wroclaw2026@') {
+                isAdminLoggedIn = true;
+                closeAdminAuthModal();
+                showToast("Zalogowano jako Administrator!", "success");
+                setAppRole('organizer');
+            } else {
+                showToast("Niepoprawne dane administratora!", "error");
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            setAppRole('player');
+            showToast("Wylogowano z panelu administratora", "info");
+        }
+
+        function setAuthTab(tab) {
+            const btnLogin = document.getElementById('btn-auth-login');
+            const btnReg = document.getElementById('btn-auth-reg');
+            const formLogin = document.getElementById('formLogin');
+            const formRegister = document.getElementById('formRegister');
+
+            if (!btnLogin || !btnReg || !formLogin || !formRegister) return;
+
+            btnLogin.className = "w-1/2 py-2.5 text-gray-400 hover:text-white font-bold";
+            btnReg.className = "w-1/2 py-2.5 text-gray-400 hover:text-white font-bold";
+
+            formLogin.classList.add('hidden');
+            formRegister.classList.add('hidden');
+
+            if (tab === 'login') {
+                btnLogin.className = "w-1/2 py-2.5 text-tekken-red border-b-2 border-tekken-red font-bold";
+                formLogin.classList.remove('hidden');
+            } else if (tab === 'register') {
+                btnReg.className = "w-1/2 py-2.5 text-tekken-cyan border-b-2 border-tekken-cyan font-bold";
+                formRegister.classList.remove('hidden');
+            }
+        }
+
+        function handlePlayerRegister(e) {
+            e.preventDefault();
+            const login = document.getElementById('regLogin').value.trim();
+            const name = document.getElementById('regName').value.trim();
+            const pass = document.getElementById('regPassword').value;
+            const firstTime = document.getElementById('regFirstTime').value === 'yes';
+
+            if (!login || !name || !pass) return;
+
+            if (tournament.players.some(p => p.login === login || p.name === name)) {
+                showToast("Login lub Nazwa gracza jest już zajęta!", "error");
+                return;
+            }
+
+            const newPlayer = {
+                id: 'p_' + Date.now(),
+                login: login,
+                password: pass,
+                name: name,
+                rank: firstTime ? 0 : 10,
+                status: 'pending',
+                manualGroup: 'A',
+                firstTime: firstTime,
+                votedSurvey: false
+            };
+
+            tournament.players.push(newPlayer);
+            saveAndSync();
+
+            loggedPlayer = newPlayer;
+            document.getElementById('regLogin').value = '';
+            document.getElementById('regName').value = '';
+            document.getElementById('regPassword').value = '';
+
+            showToast("Zarejestrowano pomyślnie! Oczekujesz na zatwierdzenie.", "success");
+            renderApp();
+            renderPlayerPanel();
+        }
+
+        function handlePlayerLogin(e) {
+            e.preventDefault();
+            const login = document.getElementById('loginUsername').value.trim();
+            const pass = document.getElementById('loginPassword').value;
+
+            const player = tournament.players.find(p => p.login === login && p.password === pass);
+            if (!player) {
+                showToast("Nieprawidłowy login lub hasło!", "error");
+                return;
+            }
+
+            loggedPlayer = player;
+            showToast(`Zalogowano jako ${player.name}`, "success");
+            renderPlayerPanel();
+        }
+
+        function logoutPlayer() {
+            loggedPlayer = null;
+            showToast("Wylogowano", "info");
+            renderPlayerPanel();
+        }
+
+        function renderPlayerPanel() {
+            const authSec = document.getElementById('playerAuthSection');
+            const dashSec = document.getElementById('playerDashboardSection');
+            const headerInfo = document.getElementById('playerAuthHeaderInfo');
+            const loggedNickEl = document.getElementById('loggedPlayerNickname');
+
+            if (!loggedPlayer) {
+                authSec.classList.remove('hidden');
+                dashSec.classList.add('hidden');
+                headerInfo.classList.add('hidden');
+                return;
+            }
+
+            authSec.classList.add('hidden');
+            dashSec.classList.remove('hidden');
+            headerInfo.classList.remove('hidden');
+            loggedNickEl.textContent = loggedPlayer.name;
+
+            const pendingNotice = document.getElementById('playerPendingNotice');
+            const activeDash = document.getElementById('playerActiveDashboard');
+            const elimSec = document.getElementById('playerEliminatedSection');
+
+            const currentP = tournament.players.find(p => p.id === loggedPlayer.id || p.name === loggedPlayer.name);
+            if (currentP) loggedPlayer = currentP;
+
+            if (loggedPlayer.status === 'pending') {
+                pendingNotice.classList.remove('hidden');
+                activeDash.classList.add('hidden');
+                elimSec.classList.add('hidden');
+                renderSurveyCardState();
+                return;
+            }
+
+            pendingNotice.classList.add('hidden');
+
+            const elimStatus = getPlayerFinalStatus(loggedPlayer.name);
+
+            if (elimStatus.isEliminated || elimStatus.isTop4) {
+                elimSec.classList.remove('hidden');
+                renderPlayerEliminationHeader(elimStatus);
+            } else {
+                elimSec.classList.add('hidden');
+            }
+
+            activeDash.classList.remove('hidden');
+            renderPlayerMatchesAndTable();
+            renderSurveyCardState();
+        }
+
+        function renderSurveyCardState() {
+            const surveyForm = document.getElementById('surveyForm');
+            const surveyThanks = document.getElementById('surveyThanksMsg');
+            if (!surveyForm || !surveyThanks) return;
+
+            if (loggedPlayer && loggedPlayer.votedSurvey) {
+                surveyForm.classList.add('hidden');
+                surveyThanks.classList.remove('hidden');
+            } else {
+                surveyForm.classList.remove('hidden');
+                surveyThanks.classList.add('hidden');
+            }
+        }
+
+        function getPlayerFinalStatus(playerName) {
+            if (!tournament.knockout || !tournament.knockout.rounds || tournament.knockout.rounds.length === 0) {
+                return { isEliminated: false, isTop4: false, place: 0 };
+            }
+
+            const rounds = tournament.knockout.rounds;
+            const finalRound = rounds[rounds.length - 1];
+            const finalMatch = finalRound ? finalRound.matches[0] : null;
+            const thirdMatch = tournament.knockout.thirdPlaceMatch;
+
+            if (finalMatch && finalMatch.played) {
+                const winner1st = finalMatch.p1Score > finalMatch.p2Score ? finalMatch.p1 : finalMatch.p2;
+                const loser2nd = finalMatch.p1Score > finalMatch.p2Score ? finalMatch.p2 : finalMatch.p1;
+                
+                if (playerName === winner1st) return { isEliminated: false, isTop4: true, place: 1 };
+                if (playerName === loser2nd) return { isEliminated: false, isTop4: true, place: 2 };
+            }
+
+            if (thirdMatch && thirdMatch.played) {
+                const winner3rd = thirdMatch.p1Score > thirdMatch.p2Score ? thirdMatch.p1 : thirdMatch.p2;
+                const loser4th = thirdMatch.p1Score > thirdMatch.p2Score ? thirdMatch.p2 : thirdMatch.p1;
+
+                if (playerName === winner3rd) return { isEliminated: false, isTop4: true, place: 3 };
+                if (playerName === loser4th) return { isEliminated: false, isTop4: true, place: 4 };
+            }
+
+            let playedInKnockout = false;
+            let lostInKnockout = false;
+
+            rounds.forEach(r => {
+                r.matches.forEach(m => {
+                    if (m.p1 === playerName || m.p2 === playerName) {
+                        playedInKnockout = true;
+                        if (m.played) {
+                            const winner = m.p1Score > m.p2Score ? m.p1 : m.p2;
+                            if (winner !== playerName && r.name !== 'Półfinał') {
+                                lostInKnockout = true;
+                            }
+                        }
+                    }
+                });
+            });
+
+            if (lostInKnockout) return { isEliminated: true, isTop4: false, place: 0 };
+
+            if (tournament.groups && tournament.groups.length > 0 && !playedInKnockout) {
+                const groupMatchesDone = tournament.groups.every(g => g.matches.every(m => m.played));
+                if (groupMatchesDone) {
+                    return { isEliminated: true, isTop4: false, place: 0 };
+                }
+            }
+
+            return { isEliminated: false, isTop4: false, place: 0 };
+        }
+
+        function renderPlayerEliminationHeader(status) {
+            const headerContainer = document.getElementById('playerCongratulationsHeader');
+            if (status.isTop4) {
+                const medalIcon = status.place === 1 ? '🥇' : status.place === 2 ? '🥈' : status.place === 3 ? '🥉' : '🎖️';
+                headerContainer.innerHTML = `
+                    <h2 class="font-teko text-4xl text-tekken-gold uppercase tracking-wider">
+                        ${medalIcon} Gratulujemy zajęcia ${status.place} miejsca!
+                    </h2>
+                `;
+            } else {
+                headerContainer.innerHTML = ``;
+            }
+        }
+
+        function submitPlayerSurvey(e) {
+            e.preventDefault();
+            if (!loggedPlayer) return;
+
+            const orgVal = parseInt(document.getElementById('surveyRatingOrg').value) || 10;
+            const appVal = parseInt(document.getElementById('surveyRatingApp').value) || 10;
+
+            if (!tournament.surveys) tournament.surveys = [];
+            tournament.surveys.push({ org: orgVal, app: appVal });
+
+            const p = tournament.players.find(x => x.id === loggedPlayer.id || x.name === loggedPlayer.name);
+            if (p) p.votedSurvey = true;
+            loggedPlayer.votedSurvey = true;
+
+            saveAndSync();
+            renderPlayerPanel();
+            renderSurveyAnalytics();
+            showToast("Dziękujemy za oddanie głosu!", "success");
+        }
+
+        function renderSurveyAnalytics() {
+            const orgText = document.getElementById('avgOrgRatingText');
+            const appText = document.getElementById('avgAppRatingText');
+            const totalText = document.getElementById('totalSurveyVotesText');
+
+            if (!orgText || !appText || !totalText) return;
+
+            const votes = tournament.surveys || [];
+            if (votes.length === 0) {
+                orgText.textContent = "0.0 / 10";
+                appText.textContent = "0.0 / 10";
+                totalText.textContent = "0";
+                return;
+            }
+
+            const sumOrg = votes.reduce((acc, v) => acc + v.org, 0);
+            const sumApp = votes.reduce((acc, v) => acc + v.app, 0);
+
+            orgText.textContent = `${(sumOrg / votes.length).toFixed(1)} / 10`;
+            appText.textContent = `${(sumApp / votes.length).toFixed(1)} / 10`;
+            totalText.textContent = votes.length;
+        }
+
+        function renderPlayerMatchesAndTable() {
+            const matchesContainer = document.getElementById('playerMatchesList');
+            const groupTableContainer = document.getElementById('playerGroupTableContainer');
+            const grNameHeader = document.getElementById('playerGroupNameHeader');
+
+            if (!matchesContainer || !groupTableContainer) return;
+
+            let myGroup = null;
+            if (tournament.groups) {
+                myGroup = tournament.groups.find(g => g.players.some(p => p.name === loggedPlayer.name));
+            }
+
+            if (grNameHeader) {
+                grNameHeader.textContent = myGroup ? `Twoja Grupa: ${myGroup.name}` : '';
+            }
+
+            // Group Table Render
+            if (myGroup) {
+                let sorted = [...myGroup.players].sort((a, b) => sortPlayersInGroup(a, b, myGroup));
+                groupTableContainer.innerHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs font-rajdhani">
+                            <thead class="text-gray-400 border-b border-tekken-cardBorder uppercase">
+                                <tr>
+                                    <th class="py-2 px-2">#</th>
+                                    <th class="py-2 px-2">Gracz</th>
+                                    <th class="py-2 px-2 text-center">M</th>
+                                    <th class="py-2 px-2 text-center">Z</th>
+                                    <th class="py-2 px-2 text-center">P</th>
+                                    <th class="py-2 px-2 text-center">R+</th>
+                                    <th class="py-2 px-2 text-center">R-</th>
+                                    <th class="py-2 px-2 text-center">(+/-)</th>
+                                    <th class="py-2 px-2 text-center text-tekken-gold">Pkt</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-tekken-cardBorder font-semibold">
+                                ${sorted.map((p, idx) => `
+                                    <tr class="${p.name === loggedPlayer.name ? 'bg-tekken-cyan/20 font-bold' : idx < 2 ? 'bg-tekken-cyan/5' : ''}">
+                                        <td class="py-2 px-2 text-tekken-gold">${idx + 1}</td>
+                                        <td class="py-2 px-2 text-white flex items-center justify-between">
+                                            <span class="truncate">${p.name}</span>
+                                            ${idx < 2 ? '<span class="text-[8px] bg-tekken-cyan text-black px-1 rounded uppercase font-bold">AWANS</span>' : ''}
+                                        </td>
+                                        <td class="py-2 px-2 text-center">${p.wins + p.losses}</td>
+                                        <td class="py-2 px-2 text-center text-emerald-400">${p.wins}</td>
+                                        <td class="py-2 px-2 text-center text-rose-400">${p.losses}</td>
+                                        <td class="py-2 px-2 text-center text-gray-300">${p.roundsWon}</td>
+                                        <td class="py-2 px-2 text-center text-gray-300">${p.roundsLost}</td>
+                                        <td class="py-2 px-2 text-center ${p.diff > 0 ? 'text-emerald-400' : p.diff < 0 ? 'text-rose-400' : ''}">${p.diff > 0 ? '+' + p.diff : p.diff}</td>
+                                        <td class="py-2 px-2 text-center text-tekken-gold font-bold">${p.points}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                groupTableContainer.innerHTML = `<div class="text-xs text-gray-500 py-2">Faza grupowa nie została jeszcze rozpoczęta.</div>`;
+            }
+
+            // Player Matches Render
+            let myMatches = [];
+
+            if (tournament.groups) {
+                tournament.groups.forEach((g, gIdx) => {
+                    g.matches.forEach((m, mIdx) => {
+                        if (m.p1 === loggedPlayer.name || m.p2 === loggedPlayer.name) {
+                            myMatches.push({ type: 'group', gIdx, mIdx, match: m, roundName: g.name });
+                        }
+                    });
+                });
+            }
+
+            if (tournament.knockout && tournament.knockout.rounds) {
+                tournament.knockout.rounds.forEach((r, rIdx) => {
+                    const isRestrictedRound = (r.name === 'Półfinał' || r.name === 'Finał');
+                    r.matches.forEach((m, mIdx) => {
+                        if (m.p1 === loggedPlayer.name || m.p2 === loggedPlayer.name) {
+                            myMatches.push({ type: 'knockout', rIdx, mIdx, match: m, roundName: r.name, restricted: isRestrictedRound });
+                        }
+                    });
+                });
+            }
+
+            if (tournament.knockout && tournament.knockout.thirdPlaceMatch) {
+                const tm = tournament.knockout.thirdPlaceMatch;
+                if (tm.p1 === loggedPlayer.name || tm.p2 === loggedPlayer.name) {
+                    myMatches.push({ type: 'thirdPlace', rIdx: '3rd', mIdx: 0, match: tm, roundName: 'Mecz o 3. Miejsce', restricted: true });
+                }
+            }
+
+            if (myMatches.length === 0) {
+                matchesContainer.innerHTML = `<div class="text-gray-500 text-sm font-rajdhani text-center py-6">Brak aktywnych meczy dla Twojego konta.</div>`;
+                return;
+            }
+
+            matchesContainer.innerHTML = myMatches.map(item => {
+                const m = item.match;
+                const isP1 = m.p1 === loggedPlayer.name;
+                const opponentName = isP1 ? m.p2 : m.p1;
+                const opponentDisplay = getMatchPlayerDisplayName(opponentName, item.type, item.rIdx, item.mIdx);
+                const mySub = isP1 ? m.submissions?.p1 : m.submissions?.p2;
+
+                let statusText = 'Oczekuje na Twój wynik';
+                let statusBadge = 'bg-red-950 border-red-500 text-red-400';
+
+                if (m.played) {
+                    statusText = 'Mecz Zakończony';
+                    statusBadge = 'bg-emerald-950 border-emerald-500 text-emerald-400';
+                } else if (mySub) {
+                    statusText = 'Wynik przesłany';
+                    statusBadge = 'bg-orange-950 border-orange-500 text-orange-400';
+                }
+
+                const canSubmit = !m.played && !item.restricted;
+
+                return `
+                    <div class="bg-tekken-bg border border-tekken-cardBorder rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-teko text-tekken-cyan uppercase tracking-wider">${item.roundName}</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${statusBadge}">${statusText}</span>
+                            </div>
+                            <div class="font-rajdhani font-bold text-lg text-white">
+                                Mecz #${m.globalNum}: <span class="text-tekken-red">${loggedPlayer.name}</span> vs <span class="text-tekken-cyan">${opponentDisplay}</span>
+                            </div>
+                            ${item.restricted ? `<div class="text-[10px] text-tekken-gold font-bold">* Wyniki półfinałów i finałów wprowadza wyłącznie organizator.</div>` : ''}
+                        </div>
+
+                        <div>
+                            ${canSubmit ? `
+                                <button onclick="openPlayerSubmitModal('${item.type}', ${item.gIdx ?? item.rIdx}, ${item.mIdx})" class="tekken-btn-gold px-4 py-2 rounded text-xs font-rajdhani font-bold uppercase tracking-wider">
+                                    <i data-lucide="edit-3" class="w-4 h-4 inline mr-1"></i> Wprowadź Wynik
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }
+
+        function openPlayerSubmitModal(type, idx1, idx2) {
+            let m = null;
+            if (type === 'group') m = tournament.groups[idx1].matches[idx2];
+            else if (type === 'knockout') m = tournament.knockout.rounds[idx1].matches[idx2];
+
+            if (!m) return;
+            playerSubmitMatchTarget = { type, idx1, idx2, match: m };
+
+            const isP1 = m.p1 === loggedPlayer.name;
+            const oppName = isP1 ? m.p2 : m.p1;
+            const oppDisplay = getMatchPlayerDisplayName(oppName, type, idx1, idx2);
+
+            document.getElementById('pModalMatchTitle').textContent = `MECZ #${m.globalNum}: ${loggedPlayer.name} VS ${oppDisplay}`;
+            document.getElementById('pModalMyName').textContent = loggedPlayer.name + " (Ty)";
+            document.getElementById('pModalOpponentName').textContent = oppDisplay;
+
+            document.getElementById('pModalMyScore').value = "0";
+            document.getElementById('pModalOpponentScore').value = "0";
+
+            populateCharacterSelect('pModalMyChar', loggedPlayer.name);
+
+            document.getElementById('playerSubmitModal').classList.remove('hidden');
+        }
+
+        function closePlayerSubmitModal() {
+            document.getElementById('playerSubmitModal').classList.add('hidden');
+            playerSubmitMatchTarget = null;
+        }
+
+        function submitPlayerMatchResult(e) {
+            e.preventDefault();
+            if (!playerSubmitMatchTarget || !loggedPlayer) return;
+
+            const myScore = parseInt(document.getElementById('pModalMyScore').value) || 0;
+            const oppScore = parseInt(document.getElementById('pModalOpponentScore').value) || 0;
+            const myChar = document.getElementById('pModalMyChar').value;
+
+            if (!myChar) {
+                showToast("Wybierz postać, którą grałeś(aś)!", "error");
+                return;
+            }
+
+            const m = playerSubmitMatchTarget.match;
+            const isP1 = m.p1 === loggedPlayer.name;
+
+            if (!m.submissions) m.submissions = {};
+
+            if (isP1) {
+                m.submissions.p1 = { scoreP1: myScore, scoreP2: oppScore, char: myChar };
+            } else {
+                m.submissions.p2 = { scoreP1: oppScore, scoreP2: myScore, char: myChar };
+            }
+
+            evaluateMatchSubmissions(m);
+
+            if (playerSubmitMatchTarget.type === 'group') {
+                updateGroupStandings();
+                renderGroups();
+            } else if (playerSubmitMatchTarget.type === 'knockout') {
+                updateKnockoutProgression();
+            }
+
+            saveAndSync();
+            closePlayerSubmitModal();
+            renderPlayerPanel();
+            showToast("Przesłano wynik meczu do organizatora", "success");
+        }
+
+        function evaluateMatchSubmissions(m) {
+            const subP1 = m.submissions?.p1;
+            const subP2 = m.submissions?.p2;
+
+            if (!subP1 && !subP2) {
+                m.status = 'red';
+                return;
+            }
+
+            if (subP1 && subP2) {
+                if (subP1.scoreP1 === subP2.scoreP1 && subP1.scoreP2 === subP2.scoreP2) {
+                    m.p1Score = subP1.scoreP1;
+                    m.p2Score = subP1.scoreP2;
+                    m.p1Char = subP1.char;
+                    m.p2Char = subP2.char;
+                    m.played = true;
+                    m.status = 'green';
+                } else {
+                    m.status = 'orange';
+                }
+            } else {
+                m.status = 'orange';
+            }
+        }
+
+        function getMatchPlayerDisplayName(rawName, type, rIdx, mIdx) {
+            if (rawName && rawName !== 'BYE' && rawName !== 'Oczekiwanie...' && rawName !== 'Oczekiwany') {
+                return rawName;
+            }
+
+            if (type === 'thirdPlace' || rIdx === '3rd') {
+                const semiRound = tournament.knockout?.rounds?.find(r => r.name === 'Półfinał');
+                if (semiRound && semiRound.matches.length >= 2) {
+                    if (mIdx === 0) return `Przegrany meczu #${semiRound.matches[0].globalNum}`;
+                    return `Przegrany meczu #${semiRound.matches[1].globalNum}`;
+                }
+                return `Przegrany Półfinału`;
+            }
+
+            if (typeof rIdx === 'number' && rIdx > 0 && tournament.knockout?.rounds?.[rIdx - 1]) {
+                const prevRound = tournament.knockout.rounds[rIdx - 1];
+                const sourceMatchP1 = prevRound.matches[mIdx * 2];
+                const sourceMatchP2 = prevRound.matches[mIdx * 2 + 1];
+
+                if (sourceMatchP1 && sourceMatchP2) {
+                    return `Wygrany meczu #${sourceMatchP1.globalNum}`;
+                }
+            }
+
+            return `Oczekuje na awans`;
+        }
+
+        function getPlayerRankBadgeHTML(rank) {
+            if (rank === 0 || rank === '0' || rank === null || rank === undefined) {
+                return '<span class="text-[10px] text-tekken-cyan bg-tekken-cyan/10 border border-tekken-cyan/30 px-1.5 py-0.5 rounded font-bold uppercase">DEBIUT</span>';
+            }
+            return `<span class="text-[10px] text-tekken-gold bg-tekken-gold/10 border border-tekken-gold/30 px-1.5 py-0.5 rounded font-bold uppercase">#${rank}</span>`;
+        }
+
+        function getPlayerRankByNickname(name) {
+            if (!name || name === "BYE" || name.includes("Wygrany") || name.includes("Przegrany")) return null;
+            const p = tournament.players.find(x => x.name === name);
+            return p ? p.rank : null;
+        }
+
+        // Database Storage
+        const DB_NAME = 'TekkenTournamentDB';
+        const DB_VERSION = 1;
+        let db = null;
+
+        function initDatabase() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NAME, DB_VERSION);
+                req.onupgradeneeded = (e) => {
+                    const dbInstance = e.target.result;
+                    if (!dbInstance.objectStoreNames.contains('store')) {
+                        dbInstance.createObjectStore('store', { keyPath: 'id' });
+                    }
+                };
+                req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        async function saveToDB() {
+            if (!db) return;
+            const tx = db.transaction('store', 'readwrite');
+            tx.objectStore('store').put({ id: 'current_tournament', data: tournament });
+        }
+
+        async function loadFromDB() {
+            if (!db) return null;
+            return new Promise((resolve) => {
+                const tx = db.transaction('store', 'readonly');
+                const req = tx.objectStore('store').get('current_tournament');
+                req.onsuccess = () => resolve(req.result ? req.result.data : null);
+                req.onerror = () => resolve(null);
+            });
+        }
+
+        window.onload = async function() {
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+            try {
+                await initDatabase();
+                const dbData = await loadFromDB();
+                if (dbData) tournament = dbData;
+                else loadFromLocalStorage();
+            } catch (e) {
+                loadFromLocalStorage();
+            }
+
+            renderApp();
+            setAppRole('player');
+
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'tekken7_tournament') {
+                    loadFromLocalStorage();
+                    renderApp();
+                }
+            });
+        };
+
+        function saveAndSync() {
+            localStorage.setItem('tekken7_tournament', JSON.stringify(tournament));
+            saveToDB();
+            bc.postMessage({ type: 'UPDATE_TOURNAMENT', data: tournament });
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('tekken7_tournament');
+            if (saved) {
+                try {
+                    tournament = JSON.parse(saved);
+                    if (!tournament.groupCapacity) tournament.groupCapacity = 4;
+                    if (!tournament.surveys) tournament.surveys = [];
+                } catch(e) {}
+            }
+        }
+
+        function getGroupLetters(num) {
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const letters = [];
+            for (let i = 0; i < num; i++) letters.push(alphabet[i] || `G${i+1}`);
+            return letters;
+        }
+
+        function switchTab(tabId) {
+            ['setup', 'groups', 'knockout'].forEach(id => {
+                const sec = document.getElementById(`sec-${id}`);
+                const tab = document.getElementById(`tab-${id}`);
+                if (!sec || !tab) return;
+                if (id === tabId) {
+                    sec.classList.remove('hidden');
+                    tab.classList.remove('text-gray-400');
+                    tab.classList.add('text-white', 'bg-tekken-red');
+                } else {
+                    sec.classList.add('hidden');
+                    tab.classList.remove('text-white', 'bg-tekken-red');
+                    tab.classList.add('text-gray-400');
+                }
+            });
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }
+
+        function setGroupCapacity(val) {
+            tournament.groupCapacity = parseInt(val) || 4;
+            saveAndSync();
+            renderSetup();
+        }
+
+        function setAssignmentMode(mode) {
+            tournament.assignmentMode = mode;
+            const btnAuto = document.getElementById('btn-mode-auto');
+            const btnManual = document.getElementById('btn-mode-manual');
+            const manualContainer = document.getElementById('manualGroupSelectContainer');
+
+            if (mode === 'auto') {
+                btnAuto.className = "px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red";
+                btnManual.className = "px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white";
+                manualContainer.classList.add('hidden');
+            } else {
+                btnManual.className = "px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red";
+                btnAuto.className = "px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white";
+                manualContainer.classList.remove('hidden');
+                updateManualGroupSelectOptions();
+            }
+            saveAndSync();
+        }
+
+        function updateManualGroupSelectOptions() {
+            const select = document.getElementById('playerGroupSelect');
+            if (!select) return;
+            const currentVal = select.value;
+            const approvedCount = tournament.players.filter(p => p.status !== 'pending').length;
+            const groupCount = Math.max(1, Math.ceil(approvedCount / tournament.groupCapacity));
+            const letters = getGroupLetters(groupCount);
+
+            select.innerHTML = letters.map(l => `<option value="${l}" ${l === currentVal ? 'selected' : ''}>Grupa ${l}</option>`).join('');
+        }
+
+        function setTiebreaker(tb) {
+            tournament.tiebreaker = tb;
+            const btnDiff = document.getElementById('btn-tie-diff');
+            const btnH2h = document.getElementById('btn-tie-h2h');
+
+            if (tb === 'diff') {
+                btnDiff.className = "px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red";
+                btnH2h.className = "px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white";
+            } else {
+                btnH2h.className = "px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-white bg-tekken-red";
+                btnDiff.className = "px-3 py-1 rounded text-xs font-rajdhani font-bold uppercase transition text-gray-400 hover:text-white";
+            }
+            saveAndSync();
+            if (tournament.groups && tournament.groups.length > 0) {
+                updateGroupStandings();
+                renderGroups();
+            }
+        }
+
+        function approvePlayer(idx) {
+            const p = tournament.players[idx];
+            if (!p) return;
+            p.status = 'approved';
+
+            const rankInput = document.getElementById(`pendingRank_${idx}`);
+            const groupSelect = document.getElementById(`pendingGroup_${idx}`);
+            if (rankInput) p.rank = parseInt(rankInput.value) || 0;
+            if (groupSelect) p.manualGroup = groupSelect.value;
+
+            saveAndSync();
+            renderSetup();
+            showToast(`Zatwierdzono gracza: ${p.name}`, "success");
+        }
+
+        function updatePlayerRank(idx, newRank) {
+            const approved = tournament.players.filter(p => p.status !== 'pending');
+            if (approved[idx]) {
+                approved[idx].rank = parseInt(newRank) || 0;
+                saveAndSync();
+            }
+        }
+
+        function updatePlayerManualGroup(idx, newGroup) {
+            const approved = tournament.players.filter(p => p.status !== 'pending');
+            if (approved[idx]) {
+                approved[idx].manualGroup = newGroup;
+                saveAndSync();
+            }
+        }
+
+        function getUsedCharactersForPlayer(playerName) {
+            let used = [];
+            if (!playerName || playerName === "BYE" || playerName.includes("Wygrany") || playerName.includes("Przegrany")) return used;
+
+            if (tournament.groups) {
+                tournament.groups.forEach(g => {
+                    g.matches.forEach(m => {
+                        if (m.played) {
+                            if (m.p1 === playerName && m.p1Char) used.push(m.p1Char);
+                            if (m.p2 === playerName && m.p2Char) used.push(m.p2Char);
+                        }
+                    });
+                });
+            }
+
+            if (tournament.knockout && tournament.knockout.rounds) {
+                tournament.knockout.rounds.forEach(r => {
+                    r.matches.forEach(m => {
+                        if (m.games && m.games.length > 0) {
+                            m.games.forEach(g => {
+                                if (g.played) {
+                                    if (m.p1 === playerName && g.p1Char) used.push(g.p1Char);
+                                    if (m.p2 === playerName && g.p2Char) used.push(g.p2Char);
+                                }
+                            });
+                        } else if (m.played) {
+                            if (m.p1 === playerName && m.p1Char) used.push(m.p1Char);
+                            if (m.p2 === playerName && m.p2Char) used.push(m.p2Char);
+                        }
+                    });
+                });
+            }
+
+            return [...new Set(used)];
+        }
+
+        function populateCharacterSelect(selectId, playerName, selectedChar = "") {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            const usedChars = getUsedCharactersForPlayer(playerName);
+            let html = '<option value="">-- Wybierz Postać --</option>';
+
+            TEKKEN_CHARACTERS.forEach(char => {
+                const isUsed = usedChars.includes(char) && char !== selectedChar;
+                html += `<option value="${char}" ${char === selectedChar ? 'selected' : ''} ${isUsed ? 'disabled' : ''}>${char}${isUsed ? ' (Użyta!)' : ''}</option>`;
+            });
+
+            select.innerHTML = html;
+        }
+
+        function addPlayerManually(e) {
+            e.preventDefault();
+            const input = document.getElementById('playerNameInput');
+            const rankInput = document.getElementById('playerRankInput');
+            const name = input.value.trim();
+            const rank = parseInt(rankInput.value) || 0;
+            if (!name) return;
+
+            let manualGroup = 'A';
+            if (tournament.assignmentMode === 'manual') {
+                const sel = document.getElementById('playerGroupSelect');
+                if (sel) manualGroup = sel.value;
+            }
+
+            tournament.players.push({
+                id: 'p_' + Date.now(),
+                login: name.toLowerCase().replace(/\s+/g, '_'),
+                password: '123',
+                name: name,
+                rank: rank,
+                status: 'approved',
+                manualGroup: manualGroup,
+                votedSurvey: false
+            });
+
+            input.value = '';
+            rankInput.value = '0';
+            saveAndSync();
+            renderSetup();
+            showToast(`Dodano gracza: ${name}`, 'success');
+        }
+
+        function generateQuickPlayers() {
+            const countInput = document.getElementById('quickCount');
+            const count = parseInt(countInput.value) || 8;
+            const sampleNames = [
+                "Kazuya", "Heihachi", "Jin", "King", "Paul", "Law", "Steve", "Hwoarang",
+                "Yoshimitsu", "Bryan", "Nina", "Eddy", "Xiaoyu", "Marduk", "Armor King", "Jack-7"
+            ];
+
+            tournament.players = [];
+            const groupCount = Math.ceil(count / tournament.groupCapacity);
+            const letters = getGroupLetters(groupCount);
+
+            for (let i = 0; i < count; i++) {
+                const baseName = sampleNames[i % sampleNames.length];
+                const name = i >= sampleNames.length ? `${baseName}_${Math.floor(i/sampleNames.length)+1}` : baseName;
+                const rank = i % 3 === 2 ? 0 : (i + 1) * 5;
+                const manualGroup = letters[Math.floor(i / tournament.groupCapacity)];
+                tournament.players.push({
+                    id: 'p_' + (Date.now() + i),
+                    login: name.toLowerCase(),
+                    password: '123',
+                    name: name,
+                    rank: rank,
+                    status: 'approved',
+                    manualGroup: manualGroup,
+                    votedSurvey: false
+                });
+            }
+
+            saveAndSync();
+            renderSetup();
+            showToast(`Wygenerowano ${count} graczy!`, 'success');
+        }
+
+        function removePlayer(idx) {
+            tournament.players.splice(idx, 1);
+            saveAndSync();
+            renderSetup();
+            showToast("Usunięto gracza", "info");
+        }
+
+        function renderSetup() {
+            const listEl = document.getElementById('playersList');
+            const pendingListEl = document.getElementById('pendingPlayersList');
+            const pendingCountEl = document.getElementById('pendingCount');
+            const countEl = document.getElementById('playersCount');
+            const calcEl = document.getElementById('calcGroupsCount');
+            if (!listEl || !countEl || !calcEl || !pendingListEl) return;
+
+            const pendingPlayers = tournament.players.filter(p => p.status === 'pending');
+            const approvedPlayers = tournament.players.filter(p => p.status === 'approved');
+
+            pendingCountEl.textContent = pendingPlayers.length;
+            countEl.textContent = approvedPlayers.length;
+            const gCount = Math.max(1, Math.ceil(approvedPlayers.length / tournament.groupCapacity));
+            calcEl.textContent = gCount;
+
+            if (tournament.assignmentMode === 'manual') updateManualGroupSelectOptions();
+
+            // Render Pending
+            if (pendingPlayers.length === 0) {
+                pendingListEl.innerHTML = `<div class="col-span-full text-center py-4 text-gray-500 font-rajdhani">Brak nowych zgłoszeń graczy.</div>`;
+            } else {
+                pendingListEl.innerHTML = pendingPlayers.map((p, idx) => `
+                    <div class="bg-tekken-card border border-tekken-gold/40 p-3 rounded-lg flex flex-col justify-between space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="font-bold text-white font-rajdhani block">${p.name}</span>
+                                <span class="text-[10px] text-gray-400">Login: ${p.login}</span>
+                            </div>
+                            ${p.firstTime ? '<span class="text-[9px] bg-tekken-cyan/20 text-tekken-cyan font-bold px-1.5 py-0.5 rounded border border-tekken-cyan/40">DEBIUTANT</span>' : ''}
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <label class="text-gray-400 font-bold">Ranga:</label>
+                            <input type="number" id="pendingRank_${idx}" value="${p.rank}" min="0" class="w-14 bg-tekken-bg border border-tekken-cardBorder rounded px-1 py-0.5 text-center text-tekken-gold font-bold">
+                            <label class="text-gray-400 font-bold">Grupa:</label>
+                            <select id="pendingGroup_${idx}" class="bg-tekken-bg border border-tekken-cardBorder rounded px-1 py-0.5 text-white font-bold">
+                                ${getGroupLetters(gCount).map(l => `<option value="${l}">${l}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="flex gap-2 pt-1">
+                            <button onclick="approvePlayer(${tournament.players.indexOf(p)})" class="w-full py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase rounded transition">
+                                Zatwierdź
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render Approved
+            if (approvedPlayers.length === 0) {
+                listEl.innerHTML = `<div class="col-span-full text-center py-8 text-gray-500 font-rajdhani">Brak zatwierdzonych uczestników.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = approvedPlayers.map((p, idx) => `
+                <div class="flex items-center justify-between bg-tekken-card border border-tekken-cardBorder p-3 rounded-lg shadow space-x-2">
+                    <div class="flex items-center space-x-2 overflow-hidden flex-grow">
+                        <span class="font-teko text-xl text-tekken-red w-5">${idx + 1}.</span>
+                        <div class="truncate flex-grow">
+                            <span class="font-rajdhani font-bold text-white block truncate">${p.name}</span>
+                            <div class="flex items-center gap-1 mt-0.5">
+                                <span class="text-[10px] text-gray-400">#</span>
+                                <input type="number" min="0" value="${p.rank}" onchange="updatePlayerRank(${idx}, this.value)" class="w-12 bg-tekken-bg text-tekken-gold font-bold text-xs px-1 rounded border border-tekken-cardBorder">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select onchange="updatePlayerManualGroup(${idx}, this.value)" class="bg-tekken-bg border border-tekken-cyan/40 text-tekken-cyan text-xs font-bold rounded px-1.5 py-1">
+                            ${getGroupLetters(gCount).map(l => `<option value="${l}" ${l === p.manualGroup ? 'selected' : ''}>Gr. ${l}</option>`).join('')}
+                        </select>
+                        <button onclick="removePlayer(${tournament.players.indexOf(p)})" class="text-gray-500 hover:text-red-400 p-1">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }
+
+        // Berger Round Robin Generator
+        function generateBergerGroupMatches(players) {
+            let n = players.length;
+            let list = [...players];
+            let isOdd = (n % 2 !== 0);
+
+            if (isOdd) {
+                list.push({ name: "BYE", isDummy: true });
+                n++;
+            }
+
+            let numRounds = n - 1;
+            let half = n / 2;
+            let matchesByRound = [];
+
+            for (let r = 0; r < numRounds; r++) {
+                let roundMatches = [];
+                let pausePlayer = null;
+
+                for (let i = 0; i < half; i++) {
+                    let p1 = list[i];
+                    let p2 = list[n - 1 - i];
+
+                    if (p1.isDummy) {
+                        pausePlayer = p2.name;
+                    } else if (p2.isDummy) {
+                        pausePlayer = p1.name;
+                    } else {
+                        roundMatches.push({
+                            p1: p1.name, p2: p2.name,
+                            p1Score: null, p2Score: null, p1Char: "", p2Char: "", played: false,
+                            status: 'red', submissions: {}
+                        });
+                    }
+                }
+
+                matchesByRound.push({ roundNum: r + 1, matches: roundMatches, pausePlayer: pausePlayer });
+                list.splice(1, 0, list.pop());
+            }
+
+            return matchesByRound;
+        }
+
+        function confirmAndGenerateGroups() {
+            const approvedPlayers = tournament.players.filter(p => p.status === 'approved');
+            if (approvedPlayers.length < 2) {
+                showToast("Zatwierdź co najmniej 2 graczy!", "error");
+                return;
+            }
+
+            const cap = tournament.groupCapacity;
+            const groupCount = Math.ceil(approvedPlayers.length / cap);
+            const letters = getGroupLetters(groupCount);
+            let groups = letters.map(l => ({ name: `Grupa ${l}`, letter: l, players: [], matches: [], rounds: [] }));
+
+            if (tournament.assignmentMode === 'auto') {
+                let rankedPlayers = approvedPlayers.filter(p => p.rank > 0).sort((a, b) => a.rank - b.rank);
+                let debutants = approvedPlayers.filter(p => p.rank === 0);
+
+                for (let i = debutants.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [debutants[i], debutants[j]] = [debutants[j], debutants[i]];
+                }
+
+                let allOrdered = [...rankedPlayers, ...debutants];
+                let pots = [];
+                for (let i = 0; i < allOrdered.length; i += groupCount) {
+                    pots.push(allOrdered.slice(i, i + groupCount));
+                }
+
+                pots.forEach(pot => {
+                    for (let i = pot.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [pot[i], pot[j]] = [pot[j], pot[i]];
+                    }
+                    pot.forEach((p, pIdx) => {
+                        const targetGroupIdx = pIdx % groupCount;
+                        groups[targetGroupIdx].players.push({
+                            name: p.name, rank: p.rank,
+                            points: 0, wins: 0, losses: 0, roundsWon: 0, roundsLost: 0, diff: 0
+                        });
+                    });
+                });
+            } else {
+                approvedPlayers.forEach(p => {
+                    const l = p.manualGroup || 'A';
+                    let gr = groups.find(g => g.letter === l);
+                    if (!gr) {
+                        gr = { name: `Grupa ${l}`, letter: l, players: [], matches: [], rounds: [] };
+                        groups.push(gr);
+                    }
+                    gr.players.push({
+                        name: p.name, rank: p.rank,
+                        points: 0, wins: 0, losses: 0, roundsWon: 0, roundsLost: 0, diff: 0
+                    });
+                });
+                groups.sort((a, b) => a.letter.localeCompare(b.letter));
+            }
+
+            // Generate Match Queues & Global Match Numbers
+            groups.forEach(g => {
+                g.rounds = generateBergerGroupMatches(g.players);
+                g.matches = [];
+            });
+
+            let globalMatchNum = 1;
+            let maxRounds = 0;
+            groups.forEach(g => { if (g.rounds.length > maxRounds) maxRounds = g.rounds.length; });
+
+            for (let r = 0; r < maxRounds; r++) {
+                groups.forEach(g => {
+                    if (g.rounds[r]) {
+                        g.rounds[r].matches.forEach(m => {
+                            m.globalNum = globalMatchNum++;
+                            g.matches.push(m);
+                        });
+                    }
+                });
+            }
+
+            tournament.groups = groups;
+            tournament.status = 'groups';
+            saveAndSync();
+            switchTab('groups');
+            renderGroups();
+            showToast("Wygenerowano mecze z kolejnością rund!", "success");
+        }
+
+        function sortPlayersInGroup(a, b, g) {
+            if (b.points !== a.points) return b.points - a.points;
+
+            if (tournament.tiebreaker === 'diff') {
+                if (b.diff !== a.diff) return b.diff - a.diff;
+                const h2h = g.matches.find(m => (m.p1 === a.name && m.p2 === b.name) || (m.p1 === b.name && m.p2 === a.name));
+                if (h2h && h2h.played) {
+                    if (h2h.p1 === a.name) return h2h.p1Score > h2h.p2Score ? -1 : 1;
+                    else return h2h.p2Score > h2h.p1Score ? -1 : 1;
+                }
+                return b.roundsWon - a.roundsWon;
+            } else {
+                const h2h = g.matches.find(m => (m.p1 === a.name && m.p2 === b.name) || (m.p1 === b.name && m.p2 === a.name));
+                if (h2h && h2h.played) {
+                    if (h2h.p1 === a.name) return h2h.p1Score > h2h.p2Score ? -1 : 1;
+                    else return h2h.p2Score > h2h.p1Score ? -1 : 1;
+                }
+                return b.diff - a.diff;
+            }
+        }
+
+        function updateGroupStandings() {
+            tournament.groups.forEach(g => {
+                g.players.forEach(p => {
+                    p.points = 0; p.wins = 0; p.losses = 0;
+                    p.roundsWon = 0; p.roundsLost = 0; p.diff = 0;
+                });
+
+                g.matches.forEach(m => {
+                    if (!m.played) return;
+                    const p1Obj = g.players.find(p => p.name === m.p1);
+                    const p2Obj = g.players.find(p => p.name === m.p2);
+                    if (!p1Obj || !p2Obj) return;
+
+                    p1Obj.roundsWon += m.p1Score;
+                    p1Obj.roundsLost += m.p2Score;
+                    p2Obj.roundsWon += m.p2Score;
+                    p2Obj.roundsLost += m.p1Score;
+
+                    if (m.p1Score > m.p2Score) {
+                        p1Obj.wins++; p1Obj.points += 3;
+                        p2Obj.losses++;
+                    } else if (m.p2Score > m.p1Score) {
+                        p2Obj.wins++; p2Obj.points += 3;
+                        p1Obj.losses++;
+                    }
+                });
+
+                g.players.forEach(p => { p.diff = p.roundsWon - p.roundsLost; });
+            });
+        }
+
+        function simulateGroupScores() {
+            if (!tournament.groups || tournament.groups.length === 0) return;
+            tournament.groups.forEach(g => {
+                g.matches.forEach(m => {
+                    if (!m.played) {
+                        const winP1 = Math.random() > 0.5;
+                        m.p1Score = winP1 ? 4 : Math.floor(Math.random() * 4);
+                        m.p2Score = winP1 ? Math.floor(Math.random() * 4) : 4;
+                        
+                        const p1Used = getUsedCharactersForPlayer(m.p1);
+                        const p2Used = getUsedCharactersForPlayer(m.p2);
+                        const p1Avail = TEKKEN_CHARACTERS.filter(c => !p1Used.includes(c));
+                        const p2Avail = TEKKEN_CHARACTERS.filter(c => !p2Used.includes(c));
+
+                        m.p1Char = p1Avail[Math.floor(Math.random() * p1Avail.length)] || "Kazuya";
+                        m.p2Char = p2Avail[Math.floor(Math.random() * p2Avail.length)] || "Paul";
+                        m.played = true;
+                        m.status = 'green';
+                    }
+                });
+            });
+            updateGroupStandings();
+            saveAndSync();
+            renderGroups();
+            showToast("Wyniki grup zautomatyzowane!", "success");
+        }
+
+        function renderGroups() {
+            const container = document.getElementById('groupsContainer');
+            if (!container) return;
+
+            if (!tournament.groups || tournament.groups.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500 font-rajdhani">Brak aktywnych grup. Najpierw zatwierdź grupy.</div>`;
+                return;
+            }
+
+            container.innerHTML = tournament.groups.map((g, gIdx) => {
+                let sortedPlayers = [...g.players].sort((a, b) => sortPlayersInGroup(a, b, g));
+
+                return `
+                    <div class="bg-tekken-card border border-tekken-cardBorder rounded-xl p-5 shadow-xl space-y-4">
+                        <div class="flex justify-between items-center border-b border-tekken-cardBorder pb-2">
+                            <h3 class="font-teko text-2xl text-tekken-cyan uppercase tracking-wider">${g.name}</h3>
+                            <span class="text-xs text-gray-400 font-rajdhani">${g.players.length} graczy</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs font-rajdhani">
+                                <thead class="text-gray-400 border-b border-tekken-cardBorder uppercase">
+                                    <tr>
+                                        <th class="py-2 px-2">#</th>
+                                        <th class="py-2 px-2">Gracz</th>
+                                        <th class="py-2 px-2 text-center">M</th>
+                                        <th class="py-2 px-2 text-center">Z</th>
+                                        <th class="py-2 px-2 text-center">P</th>
+                                        <th class="py-2 px-2 text-center">R+</th>
+                                        <th class="py-2 px-2 text-center">R-</th>
+                                        <th class="py-2 px-2 text-center">(+/-)</th>
+                                        <th class="py-2 px-2 text-center text-tekken-gold">Pkt</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-tekken-cardBorder font-semibold">
+                                    ${sortedPlayers.map((p, pIdx) => `
+                                        <tr class="${pIdx < 2 ? 'bg-tekken-cyan/10' : ''}">
+                                            <td class="py-2.5 px-2 text-tekken-gold font-teko text-lg">${pIdx + 1}</td>
+                                            <td class="py-2.5 px-2 text-white flex items-center justify-between">
+                                                <div class="flex items-center gap-2 truncate">
+                                                    <span class="truncate font-bold">${p.name}</span>
+                                                    ${getPlayerRankBadgeHTML(p.rank)}
+                                                </div>
+                                                ${pIdx < 2 ? '<span class="bg-tekken-cyan text-black text-[9px] font-bold px-1.5 py-0.5 rounded shadow-neon-cyan uppercase ml-2">AWANS</span>' : ''}
+                                            </td>
+                                            <td class="py-2.5 px-2 text-center text-gray-300">${p.wins + p.losses}</td>
+                                            <td class="py-2.5 px-2 text-center text-emerald-400 font-bold">${p.wins}</td>
+                                            <td class="py-2.5 px-2 text-center text-rose-400">${p.losses}</td>
+                                            <td class="py-2.5 px-2 text-center text-gray-300">${p.roundsWon}</td>
+                                            <td class="py-2.5 px-2 text-center text-gray-300">${p.roundsLost}</td>
+                                            <td class="py-2.5 px-2 text-center ${p.diff > 0 ? 'text-emerald-400' : p.diff < 0 ? 'text-rose-400' : 'text-gray-300'}">${p.diff > 0 ? '+' + p.diff : p.diff}</td>
+                                            <td class="py-2.5 px-2 text-center text-tekken-gold font-bold text-sm">${p.points}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- MATCHES BY ROUNDS (KOLEJKI) -->
+                        <div class="space-y-3 pt-2 border-t border-tekken-cardBorder">
+                            <h4 class="font-teko text-lg text-white uppercase tracking-wider">Kolejki i Mecze w Grupie</h4>
+                            <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                                ${(g.rounds || []).map((r) => `
+                                    <div class="bg-tekken-bg/80 border border-tekken-cardBorder p-2.5 rounded-lg space-y-1.5">
+                                        <div class="flex justify-between items-center text-xs font-rajdhani font-bold border-b border-tekken-cardBorder/60 pb-1">
+                                            <span class="text-tekken-gold uppercase">KOLEJKA ${r.roundNum}</span>
+                                            ${r.pausePlayer ? `<span class="text-[10px] text-gray-400 uppercase">Pauzuje: <span class="text-tekken-cyan font-bold">${r.pausePlayer}</span></span>` : ''}
+                                        </div>
+                                        <div class="space-y-1">
+                                            ${r.matches.map((m) => {
+                                                const mIdx = g.matches.indexOf(m);
+                                                const ledClass = m.status === 'green' ? 'led-green' : m.status === 'orange' ? 'led-orange' : 'led-red';
+                                                return `
+                                                    <div onclick="openMatchModal('group', ${gIdx}, ${mIdx})" class="flex justify-between items-center bg-tekken-card border border-tekken-cardBorder hover:border-tekken-red/60 px-2.5 py-1.5 rounded cursor-pointer transition-all">
+                                                        <div class="flex items-center gap-1.5 w-5/12 text-right justify-end truncate">
+                                                            <span class="text-xs font-rajdhani font-semibold text-gray-300 truncate ${m.played && m.p1Score > m.p2Score ? 'text-tekken-gold font-bold' : ''}">${m.p1}</span>
+                                                            ${m.p1Char ? `<span class="text-[9px] text-tekken-cyan font-bold">(${m.p1Char})</span>` : ''}
+                                                        </div>
+                                                        <div class="flex items-center gap-1">
+                                                            <span class="led-indicator ${ledClass}"></span>
+                                                            <span class="font-teko text-base px-2 py-0.5 rounded bg-tekken-darkBlue border border-tekken-cardBorder text-white min-w-[50px] text-center">
+                                                                ${m.played ? `${m.p1Score} : ${m.p2Score}` : `M#${m.globalNum}`}
+                                                            </span>
+                                                        </div>
+                                                        <div class="flex items-center gap-1.5 w-5/12 truncate">
+                                                            ${m.p2Char ? `<span class="text-[9px] text-tekken-cyan font-bold">(${m.p2Char})</span>` : ''}
+                                                            <span class="text-xs font-rajdhani font-semibold text-gray-300 truncate ${m.played && m.p2Score > m.p1Score ? 'text-tekken-gold font-bold' : ''}">${m.p2}</span>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }
+
+        function openMatchModal(type, idx1, idx2) {
+            currentActiveMatch = { type, idx1, idx2 };
+            const modal = document.getElementById('matchModal');
+            const title = document.getElementById('modalTitle');
+            const formatInfo = document.getElementById('modalFormatInfo');
+            const p1Name = document.getElementById('modalP1Name');
+            const p2Name = document.getElementById('modalP2Name');
+            const p1Score = document.getElementById('modalP1Score');
+            const p2Score = document.getElementById('modalP2Score');
+            const singleMatchContainer = document.getElementById('singleMatchContainer');
+            const seriesMatchesContainer = document.getElementById('seriesMatchesContainer');
+            const subBox = document.getElementById('modalSubmissionsStatusBox');
+            const p1SubText = document.getElementById('modalP1SubText');
+            const p2SubText = document.getElementById('modalP2SubText');
+
+            if (!modal) return;
+            let m = null;
+
+            if (type === 'group') {
+                singleMatchContainer.classList.remove('hidden');
+                seriesMatchesContainer.classList.add('hidden');
+                subBox.classList.remove('hidden');
+
+                const g = tournament.groups[idx1];
+                m = g.matches[idx2];
+                title.textContent = `Mecz #${m.globalNum} w ${g.name}`;
+                formatInfo.textContent = "FAZA GRUPOWA: 1 MECZ DO 4 WYGRANYCH RUND (FT4)";
+                p1Name.textContent = m.p1;
+                p2Name.textContent = m.p2;
+                p1Score.value = m.p1Score !== null ? m.p1Score : 0;
+                p2Score.value = m.p2Score !== null ? m.p2Score : 0;
+
+                populateCharacterSelect('modalP1Char', m.p1, m.p1Char || "");
+                populateCharacterSelect('modalP2Char', m.p2, m.p2Char || "");
+            } else if (type === 'knockout') {
+                const r = tournament.knockout.rounds[idx1];
+                m = r.matches[idx2];
+                title.textContent = `Mecz #${m.globalNum} - ${r.name}`;
+
+                const isSemi = (r.name === 'Półfinał');
+                const isFinal = (r.name === 'Finał');
+
+                if (isSemi || isFinal) {
+                    singleMatchContainer.classList.add('hidden');
+                    seriesMatchesContainer.classList.remove('hidden');
+                    subBox.classList.add('hidden');
+
+                    const maxGames = isFinal ? 5 : 3;
+                    formatInfo.textContent = `${r.name.toUpperCase()}: SERIA ${isFinal ? 'BO5 (DO 3 WYGRANYCH)' : 'BO3 (DO 2 WYGRANYCH)'}`;
+
+                    document.getElementById('seriesP1Name').textContent = getMatchPlayerDisplayName(m.p1, 'knockout', idx1, idx2);
+                    document.getElementById('seriesP2Name').textContent = getMatchPlayerDisplayName(m.p2, 'knockout', idx1, idx2);
+
+                    if (!m.games) m.games = [];
+                    while (m.games.length < maxGames) m.games.push({ p1: 0, p2: 0, p1Char: "", p2Char: "", played: false });
+
+                    renderSeriesGamesInputs(m.games, maxGames, m.p1, m.p2);
+                    updateSeriesHeaderScore();
+                } else {
+                    singleMatchContainer.classList.remove('hidden');
+                    seriesMatchesContainer.classList.add('hidden');
+                    subBox.classList.remove('hidden');
+
+                    formatInfo.textContent = `${r.name.toUpperCase()}: 1 MECZ DO 4 WYGRANYCH (FT4)`;
+                    p1Name.textContent = getMatchPlayerDisplayName(m.p1, 'knockout', idx1, idx2);
+                    p2Name.textContent = getMatchPlayerDisplayName(m.p2, 'knockout', idx1, idx2);
+                    p1Score.value = m.p1Score !== null ? m.p1Score : 0;
+                    p2Score.value = m.p2Score !== null ? m.p2Score : 0;
+
+                    populateCharacterSelect('modalP1Char', m.p1, m.p1Char || "");
+                    populateCharacterSelect('modalP2Char', m.p2, m.p2Char || "");
+                }
+            } else if (type === 'thirdPlace') {
+                m = tournament.knockout.thirdPlaceMatch;
+                title.textContent = `Mecz #${m.globalNum} - O 3. Miejsce`;
+                formatInfo.textContent = "MECZ O 3. MIEJSCE: SERIA BO5 (DO 3 WYGRANYCH)";
+                singleMatchContainer.classList.add('hidden');
+                seriesMatchesContainer.classList.remove('hidden');
+                subBox.classList.add('hidden');
+
+                document.getElementById('seriesP1Name').textContent = getMatchPlayerDisplayName(m.p1, 'thirdPlace', '3rd', 0);
+                document.getElementById('seriesP2Name').textContent = getMatchPlayerDisplayName(m.p2, 'thirdPlace', '3rd', 1);
+
+                if (!m.games) m.games = [];
+                while (m.games.length < 5) m.games.push({ p1: 0, p2: 0, p1Char: "", p2Char: "", played: false });
+
+                renderSeriesGamesInputs(m.games, 5, m.p1, m.p2);
+                updateSeriesHeaderScore();
+            }
+
+            if (m && subBox && !subBox.classList.contains('hidden')) {
+                const subP1 = m.submissions?.p1;
+                const subP2 = m.submissions?.p2;
+
+                p1SubText.textContent = subP1 ? `Gracz ${m.p1}: Wynik ${subP1.scoreP1}:${subP1.scoreP2} (${subP1.char})` : `Gracz ${m.p1}: Brak zgłoszenia`;
+                p2SubText.textContent = subP2 ? `Gracz ${m.p2}: Wynik ${subP2.scoreP1}:${subP2.scoreP2} (${subP2.char})` : `Gracz ${m.p2}: Brak zgłoszenia`;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function renderSeriesGamesInputs(games, maxGames, p1Name, p2Name) {
+            const container = document.getElementById('seriesGamesList');
+            if (!container) return;
+            container.innerHTML = games.slice(0, maxGames).map((g, idx) => `
+                <div class="bg-tekken-bg p-3 rounded border border-tekken-cardBorder space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-rajdhani font-bold text-tekken-gold">Pojedynek #${idx + 1}</span>
+                        <div class="flex items-center gap-2">
+                            <input type="number" min="0" max="4" value="${g.p1}" onchange="updateSeriesGameVal(${idx}, 'p1', this.value)" class="w-12 text-center font-teko text-xl bg-tekken-darkBlue border border-tekken-red rounded text-white focus:outline-none">
+                            <span class="text-xs text-gray-500 font-bold">:</span>
+                            <input type="number" min="0" max="4" value="${g.p2}" onchange="updateSeriesGameVal(${idx}, 'p2', this.value)" class="w-12 text-center font-teko text-xl bg-tekken-darkBlue border border-tekken-cyan rounded text-white focus:outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[10px]">
+                        <div>
+                            <select id="seriesP1Char_${idx}" onchange="updateSeriesGameChar(${idx}, 'p1Char', this.value)" class="w-full bg-tekken-darkBlue border border-tekken-cardBorder rounded px-1.5 py-1 text-white focus:outline-none">
+                            </select>
+                        </div>
+                        <div>
+                            <select id="seriesP2Char_${idx}" onchange="updateSeriesGameChar(${idx}, 'p2Char', this.value)" class="w-full bg-tekken-darkBlue border border-tekken-cardBorder rounded px-1.5 py-1 text-white focus:outline-none">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            games.slice(0, maxGames).forEach((g, idx) => {
+                populateCharacterSelect(`seriesP1Char_${idx}`, p1Name, g.p1Char || "");
+                populateCharacterSelect(`seriesP2Char_${idx}`, p2Name, g.p2Char || "");
+            });
+        }
+
+        function updateSeriesGameVal(gameIdx, playerKey, val) {
+            let intVal = parseInt(val) || 0;
+            if (intVal > 4) intVal = 4;
+            if (intVal < 0) intVal = 0;
+
+            const { type, idx1, idx2 } = currentActiveMatch;
+            let match = null;
+            if (type === 'knockout') match = tournament.knockout.rounds[idx1].matches[idx2];
+            else if (type === 'thirdPlace') match = tournament.knockout.thirdPlaceMatch;
+
+            if (match && match.games && match.games[gameIdx]) {
+                match.games[gameIdx][playerKey] = intVal;
+                match.games[gameIdx].played = (match.games[gameIdx].p1 > 0 || match.games[gameIdx].p2 > 0);
+            }
+            updateSeriesHeaderScore();
+        }
+
+        function updateSeriesGameChar(gameIdx, charKey, val) {
+            const { type, idx1, idx2 } = currentActiveMatch;
+            let match = null;
+            if (type === 'knockout') match = tournament.knockout.rounds[idx1].matches[idx2];
+            else if (type === 'thirdPlace') match = tournament.knockout.thirdPlaceMatch;
+
+            if (match && match.games && match.games[gameIdx]) {
+                match.games[gameIdx][charKey] = val;
+            }
+        }
+
+        function updateSeriesHeaderScore() {
+            const { type, idx1, idx2 } = currentActiveMatch;
+            let match = null;
+            if (type === 'knockout') match = tournament.knockout.rounds[idx1].matches[idx2];
+            else if (type === 'thirdPlace') match = tournament.knockout.thirdPlaceMatch;
+
+            if (!match || !match.games) return;
+
+            let p1Wins = 0, p2Wins = 0;
+            match.games.forEach(g => {
+                if (g.p1 === 4 && g.p1 > g.p2) p1Wins++;
+                else if (g.p2 === 4 && g.p2 > g.p1) p2Wins++;
+                else if (g.p1 > g.p2 && g.p1 > 0) p1Wins++;
+                else if (g.p2 > g.p1 && g.p2 > 0) p2Wins++;
+            });
+
+            document.getElementById('seriesScoreP1').textContent = p1Wins;
+            document.getElementById('seriesScoreP2').textContent = p2Wins;
+        }
+
+        function closeMatchModal() {
+            const modal = document.getElementById('matchModal');
+            if (modal) modal.classList.add('hidden');
+            currentActiveMatch = null;
+        }
+
+        function saveMatchScore() {
+            if (!currentActiveMatch) return;
+            const p1ScoreVal = Math.min(4, Math.max(0, parseInt(document.getElementById('modalP1Score').value) || 0));
+            const p2ScoreVal = Math.min(4, Math.max(0, parseInt(document.getElementById('modalP2Score').value) || 0));
+            const p1CharVal = document.getElementById('modalP1Char') ? document.getElementById('modalP1Char').value : "";
+            const p2CharVal = document.getElementById('modalP2Char') ? document.getElementById('modalP2Char').value : "";
+
+            const { type, idx1, idx2 } = currentActiveMatch;
+
+            if (type === 'group') {
+                const g = tournament.groups[idx1];
+                const m = g.matches[idx2];
+                m.p1Score = p1ScoreVal;
+                m.p2Score = p2ScoreVal;
+                m.p1Char = p1CharVal;
+                m.p2Char = p2CharVal;
+                m.played = true;
+                m.status = 'green';
+                updateGroupStandings();
+                renderGroups();
+            } else if (type === 'knockout') {
+                const r = tournament.knockout.rounds[idx1];
+                const m = r.matches[idx2];
+                const isSemi = (r.name === 'Półfinał');
+                const isFinal = (r.name === 'Finał');
+
+                if (isSemi || isFinal) {
+                    let p1Wins = 0, p2Wins = 0;
+                    m.games.forEach(g => {
+                        if (g.p1 > g.p2) p1Wins++;
+                        else if (g.p2 > g.p1) p2Wins++;
+                    });
+                    m.p1Series = p1Wins;
+                    m.p2Series = p2Wins;
+                    m.p1Score = p1Wins;
+                    m.p2Score = p2Wins;
+                    m.played = true;
+                    m.status = 'green';
+                } else {
+                    m.p1Score = p1ScoreVal;
+                    m.p2Score = p2ScoreVal;
+                    m.p1Char = p1CharVal;
+                    m.p2Char = p2CharVal;
+                    m.played = true;
+                    m.status = 'green';
+                }
+                updateKnockoutProgression();
+            } else if (type === 'thirdPlace') {
+                const m = tournament.knockout.thirdPlaceMatch;
+                let p1Wins = 0, p2Wins = 0;
+                m.games.forEach(g => {
+                    if (g.p1 > g.p2) p1Wins++;
+                    else if (g.p2 > g.p1) p2Wins++;
+                });
+                m.p1Series = p1Wins;
+                m.p2Series = p2Wins;
+                m.p1Score = p1Wins;
+                m.p2Score = p2Wins;
+                m.played = true;
+                m.status = 'green';
+                renderKnockout();
+            }
+
+            saveAndSync();
+            closeMatchModal();
+            showToast("Zatwierdzono i zapisano wynik meczu!", "success");
+        }
+
+        function getGroupRankings() {
+            let rankings = [];
+            tournament.groups.forEach(g => {
+                let sorted = [...g.players].sort((a, b) => sortPlayersInGroup(a, b, g));
+                rankings.push({
+                    groupLetter: g.letter,
+                    first: sorted[0] ? { name: sorted[0].name, tag: `1${g.letter}` } : null,
+                    second: sorted[1] ? { name: sorted[1].name, tag: `2${g.letter}` } : null
+                });
+            });
+            return rankings;
+        }
+
+        function getRoundNameExact(numMatches) {
+            if (numMatches === 1) return 'Finał';
+            if (numMatches === 2) return 'Półfinał';
+            if (numMatches === 4) return '1/4 Finału';
+            if (numMatches === 8) return '1/8 Finału';
+            if (numMatches === 16) return '1/16 Finału';
+            if (numMatches === 32) return '1/32 Finału';
+            return `1/${numMatches * 2} Finału`;
+        }
+
+        function updateKnockoutProgression() {
+            if (!tournament.knockout || !tournament.knockout.rounds) return;
+            const rounds = tournament.knockout.rounds;
+
+            for (let rIdx = 0; rIdx < rounds.length - 1; rIdx++) {
+                const prevRound = rounds[rIdx];
+                const nextRound = rounds[rIdx + 1];
+
+                for (let mIdx = 0; mIdx < prevRound.matches.length; mIdx++) {
+                    const m = prevRound.matches[mIdx];
+                    if (m.played) {
+                        const winner = m.p1Score > m.p2Score ? m.p1 : m.p2;
+                        const winnerTag = m.p1Score > m.p2Score ? m.p1Tag : m.p2Tag;
+                        const targetMatchIdx = Math.floor(mIdx / 2);
+
+                        if (nextRound && nextRound.matches[targetMatchIdx]) {
+                            if (mIdx % 2 === 0) {
+                                nextRound.matches[targetMatchIdx].p1 = winner;
+                                nextRound.matches[targetMatchIdx].p1Tag = winnerTag;
+                            } else {
+                                nextRound.matches[targetMatchIdx].p2 = winner;
+                                nextRound.matches[targetMatchIdx].p2Tag = winnerTag;
+                            }
+                        }
+                    }
+                }
+            }
+
+            const semiRound = rounds.find(r => r.name === 'Półfinał');
+            if (semiRound && semiRound.matches.length >= 2) {
+                let thirdMatch = tournament.knockout.thirdPlaceMatch;
+                const mSemi1 = semiRound.matches[0];
+                const mSemi2 = semiRound.matches[1];
+
+                if (!thirdMatch) {
+                    thirdMatch = { p1: null, p1Tag: '', p2: null, p2Tag: '', p1Score: null, p2Score: null, p1Series: 0, p2Series: 0, played: false, status: 'red', games: [] };
+                    tournament.knockout.thirdPlaceMatch = thirdMatch;
+                }
+
+                if (mSemi1 && mSemi1.played) {
+                    thirdMatch.p1 = mSemi1.p1Score > mSemi1.p2Score ? mSemi1.p2 : mSemi1.p1;
+                    thirdMatch.p1Tag = mSemi1.p1Score > mSemi1.p2Score ? mSemi1.p2Tag : mSemi1.p1Tag;
+                }
+                if (mSemi2 && mSemi2.played) {
+                    thirdMatch.p2 = mSemi2.p1Score > mSemi2.p2Score ? mSemi2.p2 : mSemi2.p1;
+                    thirdMatch.p2Tag = mSemi2.p1Score > mSemi2.p2Score ? mSemi2.p2Tag : mSemi2.p1Tag;
+                }
+            }
+
+            renderKnockout();
+        }
+
+        function advanceToKnockout() {
+            generateKnockoutBracket(true);
+        }
+
+        function generateKnockoutBracket(switchTabDirect = true) {
+            const rankings = getGroupRankings();
+            if (rankings.length === 0) {
+                showToast("Najpierw wygeneruj i rozegraj mecze w grupach!", "error");
+                return;
+            }
+
+            let firstRoundMatches = [];
+            const numGroups = rankings.length;
+            const offset = Math.max(1, Math.floor(numGroups / 2));
+
+            for (let i = 0; i < numGroups; i++) {
+                const g1 = rankings[i];
+                if (!g1.first) continue;
+
+                let targetIdx = (i + offset) % numGroups;
+                let g2 = rankings[targetIdx];
+                
+                let attempts = 0;
+                while ((!g2 || !g2.second || g2.groupLetter === g1.groupLetter) && attempts < numGroups) {
+                    targetIdx = (targetIdx + 1) % numGroups;
+                    g2 = rankings[targetIdx];
+                    attempts++;
+                }
+
+                const p2Name = (g2 && g2.second) ? g2.second.name : (g1.second ? g1.second.name : "BYE");
+                const p2Tag = (g2 && g2.second) ? g2.second.tag : (g1.second ? `2${g1.groupLetter}` : "BYE");
+
+                firstRoundMatches.push({
+                    p1: g1.first.name,
+                    p1Tag: g1.first.tag,
+                    p2: p2Name,
+                    p2Tag: p2Tag,
+                    p1Score: null, p2Score: null,
+                    p1Series: 0, p2Series: 0,
+                    p1Char: "", p2Char: "",
+                    played: false, status: 'red', submissions: {}, games: []
+                });
+            }
+
+            let targetPower = 1;
+            while (targetPower < firstRoundMatches.length) targetPower *= 2;
+            while (firstRoundMatches.length < targetPower) {
+                firstRoundMatches.push({
+                    p1: "BYE", p1Tag: "BYE",
+                    p2: "BYE", p2Tag: "BYE",
+                    p1Score: 4, p2Score: 0, played: true, status: 'green', games: []
+                });
+            }
+
+            let rounds = [];
+            let currentMatchCount = firstRoundMatches.length;
+
+            while (currentMatchCount >= 1) {
+                let matchesForThisRound = [];
+                if (rounds.length === 0) {
+                    matchesForThisRound = firstRoundMatches;
+                } else {
+                    for (let i = 0; i < currentMatchCount; i++) {
+                        matchesForThisRound.push({
+                            p1: null, p1Tag: '',
+                            p2: null, p2Tag: '',
+                            p1Score: null, p2Score: null, p1Series: 0, p2Series: 0, p1Char: "", p2Char: "", played: false, status: 'red', submissions: {}, games: []
+                        });
+                    }
+                }
+
+                const roundTitle = getRoundNameExact(currentMatchCount);
+                rounds.push({ name: roundTitle, matches: matchesForThisRound });
+
+                if (currentMatchCount === 1) break;
+                currentMatchCount = Math.floor(currentMatchCount / 2);
+            }
+
+            let lastGroupGlobalNum = 0;
+            if (tournament.groups) {
+                tournament.groups.forEach(g => {
+                    g.matches.forEach(m => {
+                        if (m.globalNum > lastGroupGlobalNum) lastGroupGlobalNum = m.globalNum;
+                    });
+                });
+            }
+
+            let gNum = lastGroupGlobalNum + 1;
+
+            for (let rIdx = 0; rIdx < rounds.length; rIdx++) {
+                const r = rounds[rIdx];
+                if (r.name === 'Finał') continue;
+                r.matches.forEach(m => {
+                    m.globalNum = gNum++;
+                });
+            }
+
+            let thirdPlaceMatch = { p1: null, p1Tag: '', p2: null, p2Tag: '', p1Score: null, p2Score: null, p1Series: 0, p2Series: 0, played: false, status: 'red', games: [] };
+            thirdPlaceMatch.globalNum = gNum++;
+
+            const finalRound = rounds.find(r => r.name === 'Finał');
+            if (finalRound && finalRound.matches[0]) {
+                finalRound.matches[0].globalNum = gNum++;
+            }
+
+            tournament.knockout = { rounds, thirdPlaceMatch };
+
+            updateKnockoutProgression();
+            tournament.status = 'knockout';
+            saveAndSync();
+            if (switchTabDirect) switchTab('knockout');
+            renderKnockout();
+            showToast("Drabinka pucharowa została utworzona!", "success");
+        }
+
+        function renderKnockout() {
+            const container = document.getElementById('bracketTree');
+            if (!container) return;
+
+            if (!tournament.knockout || !tournament.knockout.rounds || tournament.knockout.rounds.length === 0) {
+                container.innerHTML = `<div class="w-full text-center py-12 text-gray-500 font-rajdhani">Faza pucharowa nie została jeszcze wygenerowana. Kliknij "Zatwierdź i Generuj Drabinkę Pucharową" w fazie grupowej.</div>`;
+                return;
+            }
+
+            let html = '';
+            
+            tournament.knockout.rounds.forEach((r, rIdx) => {
+                if (r.name === 'Finał') return;
+                html += `
+                    <div class="flex-1 min-w-[290px] bg-tekken-card border border-tekken-cardBorder rounded-xl p-4 flex flex-col justify-around shadow-xl">
+                        <div class="text-center pb-2 mb-3 border-b border-tekken-cardBorder font-teko text-2xl text-tekken-cyan uppercase tracking-wider">
+                            ${r.name}
+                        </div>
+                        <div class="space-y-4">
+                            ${r.matches.map((m, mIdx) => renderMatchCard(m, rIdx, mIdx)).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (tournament.knockout.thirdPlaceMatch) {
+                const m3 = tournament.knockout.thirdPlaceMatch;
+                html += `
+                    <div class="flex-1 min-w-[290px] bg-tekken-card border border-tekken-gold/40 rounded-xl p-4 flex flex-col justify-around shadow-xl">
+                        <div class="text-center pb-2 mb-3 border-b border-tekken-gold/40 font-teko text-2xl text-tekken-gold uppercase tracking-wider">
+                            Mecz o 3. Miejsce
+                        </div>
+                        <div class="space-y-4">
+                            ${renderMatchCard(m3, '3rd', 0)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const finalRound = tournament.knockout.rounds.find(r => r.name === 'Finał');
+            if (finalRound) {
+                const finalRoundIdx = tournament.knockout.rounds.indexOf(finalRound);
+                html += `
+                    <div class="flex-1 min-w-[290px] bg-tekken-card border border-tekken-red/60 rounded-xl p-4 flex flex-col justify-around shadow-neon-red">
+                        <div class="text-center pb-2 mb-3 border-b border-tekken-red/60 font-teko text-3xl text-tekken-red uppercase tracking-wider font-bold">
+                            🏆 Finał
+                        </div>
+                        <div class="space-y-4">
+                            ${finalRound.matches.map((m, mIdx) => renderMatchCard(m, finalRoundIdx, mIdx)).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }
+
+        function renderMatchCard(m, rIdx, mIdx) {
+            let roundObj = null;
+            if (typeof rIdx === 'number' && tournament.knockout.rounds[rIdx]) {
+                roundObj = tournament.knockout.rounds[rIdx];
+            }
+
+            const isSemiOrFinal = (rIdx === '3rd') || (roundObj && (roundObj.name === 'Półfinał' || roundObj.name === 'Finał'));
+            const p1Winner = m.played && m.p1Score > m.p2Score;
+            const p2Winner = m.played && m.p2Score > m.p1Score;
+
+            const p1Display = getMatchPlayerDisplayName(m.p1, 'knockout', rIdx, mIdx);
+            const p2Display = getMatchPlayerDisplayName(m.p2, 'knockout', rIdx, mIdx);
+
+            const p1Rank = getPlayerRankByNickname(m.p1);
+            const p2Rank = getPlayerRankByNickname(m.p2);
+
+            let gamesBreakdownHTML = '';
+            if (isSemiOrFinal && m.games && m.games.length > 0) {
+                const playedGames = m.games.filter(g => g.played);
+                if (playedGames.length > 0) {
+                    gamesBreakdownHTML = `
+                        <div class="mt-2 pt-1.5 border-t border-tekken-cardBorder/60 space-y-1 text-center">
+                            <div class="text-[10px] text-tekken-gold font-bold uppercase tracking-wider text-center">Wyniki serii:</div>
+                            ${playedGames.map((g, gIdx) => `
+                                <div class="grid grid-cols-3 items-center text-[10px] bg-tekken-darkBlue/80 px-2 py-0.5 rounded border border-tekken-cardBorder/40">
+                                    <span class="text-gray-400 font-bold text-left">Pojedynek #${gIdx + 1}</span>
+                                    <span class="text-tekken-gold font-mono font-bold text-center">${g.p1} : ${g.p2}</span>
+                                    <span class="text-[9px] text-tekken-cyan font-bold truncate text-right">
+                                        ${g.p1Char || '-'} vs ${g.p2Char || '-'}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            }
+
+            const onclickStr = rIdx === '3rd' 
+                ? `openMatchModal('thirdPlace', '3rd', 0)` 
+                : `openMatchModal('knockout', ${rIdx}, ${mIdx})`;
+
+            const ledClass = m.status === 'green' ? 'led-green' : m.status === 'orange' ? 'led-orange' : 'led-red';
+
+            return `
+                <div onclick="${onclickStr}" class="bg-tekken-bg border border-tekken-cardBorder hover:border-tekken-red/60 rounded-xl p-3 cursor-pointer shadow transition-all space-y-2">
+                    <div class="flex justify-between items-center text-xs font-rajdhani text-gray-400 border-b border-tekken-cardBorder pb-1">
+                        <div class="flex items-center gap-1.5">
+                            <span class="led-indicator ${ledClass}"></span>
+                            <span>Mecz #${m.globalNum}</span>
+                        </div>
+                        ${isSemiOrFinal ? `<span class="text-[10px] text-tekken-gold font-bold">Wynik Serii: ${m.p1Series || 0} - ${m.p2Series || 0}</span>` : ''}
+                    </div>
+                    <div class="space-y-1.5 font-rajdhani font-semibold">
+                        <div class="flex justify-between items-center px-2 py-1.5 rounded bg-tekken-card ${p1Winner ? 'border-l-4 border-tekken-gold bg-tekken-gold/10' : ''}">
+                            <div class="flex items-center space-x-1.5 truncate">
+                                ${m.p1Tag ? `<span class="text-[10px] bg-tekken-red/20 text-tekken-red px-1 rounded font-bold">${m.p1Tag}</span>` : ''}
+                                ${p1Rank !== null ? getPlayerRankBadgeHTML(p1Rank) : ''}
+                                <span class="text-xs text-white truncate ${p1Winner ? 'font-bold text-tekken-gold' : ''}">${p1Display}</span>
+                                ${!isSemiOrFinal && m.p1Char ? `<span class="text-[9px] text-tekken-cyan font-bold">(${m.p1Char})</span>` : ''}
+                            </div>
+                            <span class="font-teko text-lg text-white font-bold ml-2">${m.played ? (isSemiOrFinal ? (m.p1Series || 0) : m.p1Score) : '-'}</span>
+                        </div>
+                        <div class="flex justify-between items-center px-2 py-1.5 rounded bg-tekken-card ${p2Winner ? 'border-l-4 border-tekken-gold bg-tekken-gold/10' : ''}">
+                            <div class="flex items-center space-x-1.5 truncate">
+                                ${m.p2Tag ? `<span class="text-[10px] bg-tekken-red/20 text-tekken-red px-1 rounded font-bold">${m.p2Tag}</span>` : ''}
+                                ${p2Rank !== null ? getPlayerRankBadgeHTML(p2Rank) : ''}
+                                <span class="text-xs text-white truncate ${p2Winner ? 'font-bold text-tekken-gold' : ''}">${p2Display}</span>
+                                ${!isSemiOrFinal && m.p2Char ? `<span class="text-[9px] text-tekken-cyan font-bold">(${m.p2Char})</span>` : ''}
+                            </div>
+                            <span class="font-teko text-lg text-white font-bold ml-2">${m.played ? (isSemiOrFinal ? (m.p2Series || 0) : m.p2Score) : '-'}</span>
+                        </div>
+                    </div>
+                    ${gamesBreakdownHTML}
+                </div>
+            `;
+        }
+
+        // CSV EXPORT (EXCEL COMPATIBLE WITH BOM)
+        function exportToCSV() {
+            if (!tournament.players || tournament.players.length === 0) {
+                showToast("Brak danych turnieju do eksportu", "error");
+                return;
+            }
+
+            let csv = "\uFEFFXIII TURNIEJ W TEKKEN 7 - PEŁNY RAPORT TURNIEJOWY\n";
+            csv += `Organizator: Michał „Majsik” Długaszewski | Pub Salonik 28.11.2026r.\n\n`;
+
+            csv += "=== ZAREJESTROWANI UCZESTNICY ===\n";
+            csv += "Lp.;Nazwa Gracza;Status;Ranga;Grupa Ręczna\n";
+            tournament.players.forEach((p, i) => {
+                const rankText = p.rank === 0 ? "DEBIUT" : `#${p.rank}`;
+                csv += `${i + 1};${p.name};${p.status};${rankText};${p.manualGroup || 'Auto'}\n`;
+            });
+            csv += "\n";
+
+            if (tournament.groups && tournament.groups.length > 0) {
+                csv += "=== FAZA GRUPOWA ===\n\n";
+                tournament.groups.forEach(g => {
+                    csv += `--- ${g.name} ---\n`;
+                    csv += "Pozycja;Gracz;Ranga;M;Z;P;R+;R-;(+/-);Pkt\n";
+                    let sorted = [...g.players].sort((a, b) => sortPlayersInGroup(a, b, g));
+                    sorted.forEach((p, idx) => {
+                        const rText = p.rank === 0 ? "DEBIUT" : `#${p.rank}`;
+                        csv += `${idx + 1};${p.name};${rText};${p.wins + p.losses};${p.wins};${p.losses};${p.roundsWon};${p.roundsLost};${p.diff};${p.points}\n`;
+                    });
+
+                    csv += "\nMecze w grupie:\n";
+                    csv += "Mecz #;Gracz 1;Postać P1;Wynik P1;Wynik P2;Postać P2;Gracz 2;Status\n";
+                    g.matches.forEach(m => {
+                        csv += `${m.globalNum};${m.p1};${m.p1Char || '-'};${m.played ? m.p1Score : '-'};${m.played ? m.p2Score : '-'};${m.p2Char || '-'};${m.p2};${m.played ? 'Rozegrany' : 'Oczekuje'}\n`;
+                    });
+                    csv += "\n";
+                });
+            }
+
+            if (tournament.surveys && tournament.surveys.length > 0) {
+                csv += "=== STATYSTYKI ANKIET ===\n";
+                csv += `Liczba Głosów;${tournament.surveys.length}\n`;
+                const sumOrg = tournament.surveys.reduce((acc, v) => acc + v.org, 0);
+                const sumApp = tournament.surveys.reduce((acc, v) => acc + v.app, 0);
+                csv += `Średnia Ocena Organizacji;${(sumOrg / tournament.surveys.length).toFixed(2)}\n`;
+                csv += `Średnia Ocena Aplikacji;${(sumApp / tournament.surveys.length).toFixed(2)}\n`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'XIII_Tekken_7_Turniej_Raport.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast("Wyeksportowano raport CSV (Excel)!", "success");
+        }
+
+        // JSON EXPORT & IMPORT
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tournament, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", "tekken7_turniej_backup.json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+            showToast("Wyeksportowano kopię JSON", "success");
+        }
+
+        function importData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    tournament = JSON.parse(evt.target.result);
+                    saveAndSync();
+                    renderApp();
+                    showToast("Zaimportowano turniej pomyślnie!", "success");
+                } catch(err) {
+                    showToast("Błąd pliku JSON!", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // FULL RESET TOURNAMENT (MODAL BASED)
+        function openResetModal() {
+            document.getElementById('resetConfirmModal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetConfirmModal').classList.add('hidden');
+        }
+
+        function executeResetTournament() {
+            localStorage.removeItem('tekken7_tournament');
+            if (db) {
+                try {
+                    const tx = db.transaction('store', 'readwrite');
+                    tx.objectStore('store').delete('current_tournament');
+                } catch(e) {}
+            }
+            tournament = {
+                players: [],
+                assignmentMode: 'auto',
+                groupCapacity: 4,
+                tiebreaker: 'diff',
+                groups: [],
+                knockout: { rounds: [], thirdPlaceMatch: null },
+                surveys: [],
+                status: 'setup'
+            };
+            loggedPlayer = null;
+            isAdminLoggedIn = false;
+            saveAndSync();
+            closeResetModal();
+            renderApp();
+            setAppRole('player');
+            switchTab('setup');
+            showToast("Zresetowano turniej - usunięto wszystkie konta, mecze i ankiety", "info");
+        }
+
+        function renderApp() {
+            renderSetup();
+            if (tournament.groups && tournament.groups.length > 0) renderGroups();
+            if (tournament.knockout && tournament.knockout.rounds && tournament.knockout.rounds.length > 0) renderKnockout();
+            if (appRole === 'player') renderPlayerPanel();
+        }
+
+        // Live Window (2nd Monitor View)
+        function openLiveWindow() {
+            const liveWin = window.open('', 'TekkenLiveDisplay', 'width=1280,height=720');
+            if (!liveWin) {
+                showToast("Zablokowano pop-up! Zezwól na okna wyskakujące w przeglądarce.", "error");
+                return;
+            }
+
+            const liveHTML = `<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>XIII Turniej w Tekken 7 - EKRAN NA ŻYWO</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"><\/script>
+    <style>
+        body { background: #050508; color: #fff; font-family: "Rajdhani", sans-serif; overflow-y: auto; scroll-behavior: smooth; }
+        .font-teko { font-family: "Teko", sans-serif; }
+    </style>
+</head>
+<body class="p-6 pb-20">
+    <div id="liveHeader" class="sticky top-0 z-50 bg-[#050508]/95 backdrop-blur border-b border-red-600/40 pb-3 mb-6 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-red-600 flex items-center justify-center font-teko text-xl font-bold text-white shadow-lg">
+                XIII
+            </div>
+            <div>
+                <h1 class="font-teko text-3xl font-bold uppercase tracking-widest text-white leading-none">
+                    XIII Turniej <span class="text-red-500">w Tekken 7</span>
+                </h1>
+                <p class="text-xs text-yellow-400 font-bold uppercase tracking-widest">by Michał „Majsik” Długaszewski | Pub Salonik 28.11.2026r.</p>
+            </div>
+        </div>
+    </div>
+    <div id="podiumArea" class="hidden mb-10"></div>
+    <div id="liveContent" class="space-y-10"></div>
+
+    <script>
+        const bcLive = new BroadcastChannel("tekken_tournament_channel");
+        let confettiFired = false;
+
+        bcLive.onmessage = (e) => { if (e.data && e.data.type === "UPDATE_TOURNAMENT") renderLive(e.data.data); };
+        window.onload = function() {
+            const saved = localStorage.getItem("tekken7_tournament");
+            if (saved) { try { renderLive(JSON.parse(saved)); } catch(err) {} }
+        };
+
+        function getLiveMatchPlayerName(rawName, type, rIdx, mIdx, rounds) {
+            if (rawName && rawName !== 'BYE' && rawName !== 'Oczekiwanie...' && rawName !== 'Oczekiwany') {
+                return rawName;
+            }
+            if (type === '3rd') {
+                const semiRound = rounds ? rounds.find(r => r.name === 'Półfinał') : null;
+                if (semiRound && semiRound.matches.length >= 2) {
+                    if (mIdx === 0) return 'Przegrany meczu #' + semiRound.matches[0].globalNum;
+                    return 'Przegrany meczu #' + semiRound.matches[1].globalNum;
+                }
+                return 'Przegrany Półfinału';
+            }
+            if (typeof rIdx === 'number' && rIdx > 0 && rounds && rounds[rIdx - 1]) {
+                const prevRound = rounds[rIdx - 1];
+                const sm = prevRound.matches[mIdx * 2];
+                if (sm) return 'Wygrany meczu #' + sm.globalNum;
+            }
+            return 'Oczekuje na awans';
+        }
+
+        function renderLive(data) {
+            const container = document.getElementById("liveContent");
+            const podiumContainer = document.getElementById("podiumArea");
+            if (!container || !podiumContainer) return;
+
+            let html = "";
+            let p1st = null, p2nd = null, p3rd = null, p4th = null;
+
+            if (data.knockout && data.knockout.rounds && data.knockout.rounds.length > 0) {
+                const finalRound = data.knockout.rounds[data.knockout.rounds.length - 1];
+                if (finalRound && finalRound.matches[0] && finalRound.matches[0].played) {
+                    const fm = finalRound.matches[0];
+                    p1st = fm.p1Score > fm.p2Score ? fm.p1 : fm.p2;
+                    p2nd = fm.p1Score > fm.p2Score ? fm.p2 : fm.p1;
+                }
+
+                if (data.knockout.thirdPlaceMatch && data.knockout.thirdPlaceMatch.played) {
+                    const tm = data.knockout.thirdPlaceMatch;
+                    p3rd = tm.p1Score > tm.p2Score ? tm.p1 : tm.p2;
+                    p4th = tm.p1Score > tm.p2Score ? tm.p2 : tm.p1;
+                }
+            }
+
+            if (p1st && p2nd && p3rd && p4th) {
+                podiumContainer.classList.remove("hidden");
+                podiumContainer.innerHTML = \`
+                    <div class="bg-gradient-to-r from-yellow-950/40 via-red-950/40 to-cyan-950/40 border-2 border-yellow-500/60 rounded-2xl p-6 text-center space-y-6 shadow-2xl">
+                        <h2 class="font-teko text-5xl text-yellow-400 uppercase tracking-widest animate-pulse">👑 OFICJALNE PODIUM TURNIEJU 👑</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end max-w-5xl mx-auto">
+                            <div class="order-2 md:order-1 bg-gray-900/90 border border-slate-400 p-4 rounded-xl space-y-2">
+                                <div class="text-slate-300 font-teko text-3xl">🥈 2. MIEJSCE</div>
+                                <div class="font-bold text-white text-xl truncate">\${p2nd}</div>
+                            </div>
+                            <div class="order-1 md:order-2 bg-gradient-to-b from-yellow-500/20 to-yellow-950/80 border-2 border-yellow-400 p-6 rounded-xl space-y-3 shadow-yellow-500/30 shadow-2xl">
+                                <div class="text-yellow-400 font-teko text-5xl">🏆 1. MIEJSCE</div>
+                                <div class="font-bold text-yellow-300 text-3xl uppercase tracking-wider truncate">\${p1st}</div>
+                                <div class="text-xs text-yellow-500 uppercase font-bold">MISTRZ XIII TURNIEJU</div>
+                            </div>
+                            <div class="order-3 md:order-3 bg-gray-900/90 border border-amber-700 p-4 rounded-xl space-y-2">
+                                <div class="text-amber-600 font-teko text-3xl">🥉 3. MIEJSCE</div>
+                                <div class="font-bold text-white text-xl truncate">\${p3rd}</div>
+                            </div>
+                            <div class="order-4 md:order-4 bg-gray-900/60 border border-cyan-500/40 p-4 rounded-xl space-y-2">
+                                <div class="text-cyan-400 font-teko text-2xl">🎖️ 4. MIEJSCE</div>
+                                <div class="font-bold text-gray-300 text-lg truncate">\${p4th}</div>
+                            </div>
+                        </div>
+                    </div>
+                \`;
+
+                if (!confettiFired && typeof confetti === 'function') {
+                    confettiFired = true;
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                }
+            } else {
+                podiumContainer.classList.add("hidden");
+            }
+
+            // Groups
+            if (data.groups && data.groups.length > 0) {
+                html += '<section><h2 class="font-teko text-4xl text-yellow-400 mb-4 uppercase tracking-wider">Faza Grupowa</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
+                data.groups.forEach(g => {
+                    html += '<div class="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-lg space-y-3">';
+                    html += '<h3 class="font-teko text-3xl text-cyan-400 border-b border-gray-800 pb-1 flex justify-between"><span>' + g.name + '</span><span class="text-xs text-gray-500 font-rajdhani self-center">' + g.players.length + ' Graczy</span></h3>';
+                    html += '<table class="w-full text-xs"><tr class="text-gray-400 border-b border-gray-800 text-left"><th class="pb-1">#</th><th class="pb-1">Gracz</th><th class="text-center pb-1">M</th><th class="text-center pb-1">Z</th><th class="text-center pb-1">P</th><th class="text-center pb-1">R+</th><th class="text-center pb-1">R-</th><th class="text-center pb-1">(+/-)</th><th class="text-center pb-1 text-yellow-400">Pkt</th></tr>';
+                    let sorted = [...g.players].sort((a,b) => (b.points||0) - (a.points||0) || (b.diff||0) - (a.diff||0));
+                    sorted.forEach((p, idx) => {
+                        html += '<tr class="' + (idx < 2 ? 'bg-cyan-500/10 font-bold' : '') + '">';
+                        html += '<td class="py-1 px-1 text-yellow-400">' + (idx + 1) + '</td>';
+                        html += '<td class="py-1 px-1 text-white font-bold">' + p.name + (idx < 2 ? '<span class="bg-cyan-400 text-black text-[8px] px-1 rounded uppercase font-bold ml-1">AWANS</span>' : '') + '</td>';
+                        html += '<td class="py-1 px-1 text-center">' + ((p.wins||0)+(p.losses||0)) + '</td>';
+                        html += '<td class="py-1 px-1 text-center text-emerald-400">' + (p.wins||0) + '</td>';
+                        html += '<td class="py-1 px-1 text-center text-rose-400">' + (p.losses||0) + '</td>';
+                        html += '<td class="py-1 px-1 text-center">' + (p.roundsWon||0) + '</td>';
+                        html += '<td class="py-1 px-1 text-center">' + (p.roundsLost||0) + '</td>';
+                        html += '<td class="py-1 px-1 text-center">' + (p.diff > 0 ? '+' + p.diff : (p.diff||0)) + '</td>';
+                        html += '<td class="py-1 px-1 text-center text-yellow-400 font-bold">' + (p.points||0) + '</td>';
+                        html += '</tr>';
+                    });
+                    html += '</table>';
+
+                    if (g.rounds && g.rounds.length > 0) {
+                        html += '<div class="pt-2 border-t border-gray-800 space-y-2"><div class="text-xs text-yellow-400 font-bold uppercase">Mecze po kolejkach:</div>';
+                        g.rounds.forEach(r => {
+                            html += '<div class="bg-black/40 p-2 rounded space-y-1"><div class="text-[10px] text-gray-400 font-bold flex justify-between"><span>KOLEJKA ' + r.roundNum + '</span>' + (r.pausePlayer ? '<span class="text-cyan-400">Pauzuje: ' + r.pausePlayer + '</span>' : '') + '</div>';
+                            r.matches.forEach(m => {
+                                html += '<div class="flex justify-between items-center text-xs bg-gray-900 px-2 py-1 rounded"><span class="w-5/12 text-right truncate font-bold">' + m.p1 + (m.p1Char ? ' ('+m.p1Char+')' : '') + '</span><span class="font-teko text-base px-2 text-yellow-400 bg-black rounded">' + (m.played ? m.p1Score + ':' + m.p2Score : 'M#' + m.globalNum) + '</span><span class="w-5/12 truncate font-bold">' + m.p2 + (m.p2Char ? ' ('+m.p2Char+')' : '') + '</span></div>';
+                            });
+                            html += '</div>';
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                });
+                html += '</div></section>';
+            }
+
+            // Knockout Stage
+            if (data.knockout && data.knockout.rounds && data.knockout.rounds.length > 0) {
+                html += '<section><h2 class="font-teko text-4xl text-red-500 mb-4 uppercase tracking-wider">Faza Pucharowa</h2><div class="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-4">';
+                data.knockout.rounds.forEach((r, rIdx) => {
+                    const isSemiOrFinalLive = (r.name === 'Półfinał' || r.name === 'Finał');
+                    html += '<div class="flex-1 min-w-[280px] bg-gray-900/90 border border-gray-800 rounded-xl p-4 space-y-4">';
+                    html += '<div class="text-center font-teko text-2xl text-cyan-400 uppercase border-b border-gray-800 pb-2">' + r.name + '</div><div class="space-y-3">';
+                    r.matches.forEach((m, mIdx) => {
+                        const liveP1 = getLiveMatchPlayerName(m.p1, 'knockout', rIdx, mIdx, data.knockout.rounds);
+                        const liveP2 = getLiveMatchPlayerName(m.p2, 'knockout', rIdx, mIdx, data.knockout.rounds);
+
+                        let liveGamesBreakdown = '';
+                        if (isSemiOrFinalLive && m.games && m.games.length > 0) {
+                            const playedG = m.games.filter(g => g.played);
+                            if (playedG.length > 0) {
+                                liveGamesBreakdown = '<div class="mt-1.5 pt-1.5 border-t border-gray-800 space-y-1 text-center"><div class="text-[9px] text-yellow-400 font-bold uppercase">Pojedynki w serii:</div>';
+                                playedG.forEach((g, gIdx) => {
+                                    liveGamesBreakdown += '<div class="grid grid-cols-3 items-center bg-gray-950 px-1.5 py-0.5 rounded text-[10px]"><span class="text-gray-400 font-bold text-left">P' + (gIdx+1) + ':</span><span class="font-mono text-yellow-400 font-bold text-center">' + g.p1 + ' : ' + g.p2 + '</span><span class="text-cyan-400 text-[9px] font-bold text-right truncate">' + (g.p1Char || '-') + ' vs ' + (g.p2Char || '-') + '</span></div>';
+                                });
+                                liveGamesBreakdown += '</div>';
+                            }
+                        }
+
+                        html += '<div class="bg-black/50 border border-gray-800 rounded-lg p-2.5 space-y-1.5">';
+                        html += '<div class="flex justify-between text-[10px] text-gray-500 uppercase"><span>Mecz #' + m.globalNum + '</span>' + (isSemiOrFinalLive ? '<span class="text-yellow-400 font-bold">Seria: ' + (m.p1Series || 0) + '-' + (m.p2Series || 0) + '</span>' : '') + '</div>';
+                        html += '<div class="flex justify-between items-center bg-gray-900 px-2 py-1 rounded ' + (m.played && m.p1Score > m.p2Score ? 'border-l-2 border-yellow-400' : '') + '"><span class="text-xs truncate font-bold text-white">' + liveP1 + '</span><span class="font-teko text-base font-bold text-yellow-400">' + (m.played ? (isSemiOrFinalLive ? (m.p1Series || 0) : m.p1Score) : '-') + '</span></div>';
+                        html += '<div class="flex justify-between items-center bg-gray-900 px-2 py-1 rounded ' + (m.played && m.p2Score > m.p1Score ? 'border-l-2 border-yellow-400' : '') + '"><span class="text-xs truncate font-bold text-white">' + liveP2 + '</span><span class="font-teko text-base font-bold text-yellow-400">' + (m.played ? (isSemiOrFinalLive ? (m.p2Series || 0) : m.p2Score) : '-') + '</span></div>';
+                        html += liveGamesBreakdown;
+                        html += '</div>';
+                    });
+                    html += '</div></div>';
+                });
+
+                if (data.knockout.thirdPlaceMatch) {
+                    const m3 = data.knockout.thirdPlaceMatch;
+                    const liveP1_3 = getLiveMatchPlayerName(m3.p1, '3rd', 0, 0, data.knockout.rounds);
+                    const liveP2_3 = getLiveMatchPlayerName(m3.p2, '3rd', 0, 1, data.knockout.rounds);
+
+                    html += '<div class="flex-1 min-w-[280px] bg-gray-900/90 border border-yellow-500/40 rounded-xl p-4 space-y-4">';
+                    html += '<div class="text-center font-teko text-2xl text-yellow-400 uppercase border-b border-yellow-500/40 pb-2">Mecz o 3. Miejsce</div>';
+                    html += '<div class="bg-black/50 border border-gray-800 rounded-lg p-2.5 space-y-1.5">';
+                    html += '<div class="flex justify-between text-[10px] text-gray-500 uppercase"><span>Mecz #' + m3.globalNum + '</span><span class="text-yellow-400 font-bold">Wynik: ' + (m3.p1Series || 0) + '-' + (m3.p2Series || 0) + '</span></div>';
+                    html += '<div class="flex justify-between items-center bg-gray-900 px-2 py-1 rounded ' + (m3.played && m3.p1Score > m3.p2Score ? 'border-l-2 border-yellow-400' : '') + '"><span class="text-xs truncate font-bold text-white">' + liveP1_3 + '</span><span class="font-teko text-base font-bold text-yellow-400">' + (m3.played ? (m3.p1Series || 0) : '-') + '</span></div>';
+                    html += '<div class="flex justify-between items-center bg-gray-900 px-2 py-1 rounded ' + (m3.played && m3.p2Score > m3.p1Score ? 'border-l-2 border-yellow-400' : '') + '"><span class="text-xs truncate font-bold text-white">' + liveP2_3 + '</span><span class="font-teko text-base font-bold text-yellow-400">' + (m3.played ? (m3.p2Series || 0) : '-') + '</span></div>';
+                    html += '</div></div>';
+                }
+
+                html += '</div></section>';
+            }
+
+            container.innerHTML = html;
+        }
+    <\/script>
+</body>
+</html>`;
+
+            liveWin.document.open();
+            liveWin.document.write(liveHTML);
+            liveWin.document.close();
+        }
+    </script>
+</body>
+</html>
