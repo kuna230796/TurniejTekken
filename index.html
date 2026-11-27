@@ -671,6 +671,23 @@
             if (!data.groupCapacity) data.groupCapacity = 4;
             if (!data.assignmentMode) data.assignmentMode = 'auto';
             if (!data.tiebreaker) data.tiebreaker = 'diff';
+
+            // RE-BIND & SYNC MATCH REFERENCES IN GROUPS (Fixes JSON deserialization decoupling)
+            if (data.groups && data.groups.length > 0) {
+                data.groups.forEach(g => {
+                    if (g.rounds && g.matches) {
+                        const roundMatchesMap = {};
+                        g.rounds.forEach(r => {
+                            if (r.matches) {
+                                r.matches.forEach(rm => {
+                                    if (rm.globalNum) roundMatchesMap[rm.globalNum] = rm;
+                                });
+                            }
+                        });
+                        g.matches = g.matches.map(m => roundMatchesMap[m.globalNum] || m);
+                    }
+                });
+            }
         }
 
         function initFirebase() {
@@ -1274,6 +1291,16 @@
             evaluateMatchSubmissions(m);
 
             if (playerSubmitMatchTarget.type === 'group') {
+                const g = tournament.groups[playerSubmitMatchTarget.idx1];
+                if (g) {
+                    g.rounds.forEach(r => {
+                        r.matches.forEach(rm => {
+                            if (rm.globalNum === m.globalNum) {
+                                Object.assign(rm, m);
+                            }
+                        });
+                    });
+                }
                 updateGroupStandings();
                 renderGroups();
             } else if (playerSubmitMatchTarget.type === 'knockout') {
@@ -1960,6 +1987,15 @@
                         m.p2Char = p2Avail[Math.floor(Math.random() * p2Avail.length)] || "Paul";
                         m.played = true;
                         m.status = 'green';
+
+                        // Sync match object in g.rounds
+                        g.rounds.forEach(r => {
+                            r.matches.forEach(rm => {
+                                if (rm.globalNum === m.globalNum) {
+                                    Object.assign(rm, m);
+                                }
+                            });
+                        });
                     }
                 });
             });
@@ -2037,10 +2073,10 @@
                                         </div>
                                         <div class="space-y-1">
                                             ${r.matches.map((m) => {
-                                                const mIdx = g.matches.indexOf(m);
+                                                const mIdx = g.matches.findIndex(matchItem => matchItem.globalNum === m.globalNum);
                                                 const ledClass = m.status === 'green' ? 'led-green' : m.status === 'orange' ? 'led-orange' : 'led-red';
                                                 return `
-                                                    <div onclick="openMatchModal('group', ${gIdx}, ${mIdx})" class="flex justify-between items-center bg-tekken-card border border-tekken-cardBorder hover:border-tekken-red/60 px-2.5 py-1.5 rounded cursor-pointer transition-all">
+                                                    <div onclick="openMatchModal('group', ${gIdx}, ${mIdx >= 0 ? mIdx : 0})" class="flex justify-between items-center bg-tekken-card border border-tekken-cardBorder hover:border-tekken-red/60 px-2.5 py-1.5 rounded cursor-pointer transition-all">
                                                         <div class="flex items-center gap-1.5 w-5/12 text-right justify-end truncate">
                                                             <span class="text-xs font-rajdhani font-semibold text-gray-300 truncate ${m.played && m.p1Score > m.p2Score ? 'text-tekken-gold font-bold' : ''}">${m.p1}</span>
                                                             ${m.p1Char ? `<span class="text-[9px] text-tekken-cyan font-bold">(${m.p1Char})</span>` : ''}
@@ -2274,6 +2310,16 @@
                 m.p2Char = p2CharVal;
                 m.played = true;
                 m.status = 'green';
+
+                // Sync match object in g.rounds explicitly
+                g.rounds.forEach(r => {
+                    r.matches.forEach(rm => {
+                        if (rm.globalNum === m.globalNum) {
+                            Object.assign(rm, m);
+                        }
+                    });
+                });
+
                 updateGroupStandings();
                 renderGroups();
             } else if (type === 'knockout') {
